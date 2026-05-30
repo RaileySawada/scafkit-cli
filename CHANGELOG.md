@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0.3
+
+### CLI
+
+- Added `create` and `new` commands for explicit starter creation.
+- Added `list`, `templates`, and version commands.
+- Added `--yes`, `--dir`, and `--dry-run` project creation options.
+- Improved command help output for the new options.
+
+### Documentation
+
+- Reworked the README into a user-focused guide with install steps, examples, starter options, and utility commands.
+
+### Security
+
+- Updated Socket.dev CLI development dependency to `^1.1.111`.
+
 ## 1.0.1
 
 ### Security
