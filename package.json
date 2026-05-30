@@ -1,6 +1,6 @@
 {
   "name": "scafkit-cli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Interactive CLI for generating starter projects.",
   "main": "bin/scafkit-cli.js",
   "type": "commonjs",
