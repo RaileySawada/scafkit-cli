@@ -54,7 +54,7 @@ const c = {
 const GRAD = [c.fg(51), c.fg(45), c.fg(39), c.fg(33), c.fg(27), c.fg(21)];
 
 const A = c.fg(51);
-const A2 = c.fg(196);
+const A2 = c.fg(226);
 const A3 = c.fg(226);
 const DIM = c.bBlack;
 
@@ -99,6 +99,11 @@ function stripAnsi(str) {
   return str.replace(/\x1b\[[0-9;]*m/g, "");
 }
 
+function padAnsiRight(value, width) {
+  const visible = stripAnsi(value).length;
+  return value + " ".repeat(Math.max(0, width - visible));
+}
+
 function banner() {
   const rows = [
     " ███████╗ ██████╗ █████╗ ███████╗██╗  ██╗██╗████████╗       ██████╗██╗     ██╗",
@@ -111,12 +116,13 @@ function banner() {
 
   const BLUE = c.fg(39);
   const BLUE2 = c.fg(33);
-  const RED = c.fg(196);
-  const RED2 = c.fg(160);
+  const BLUE3 = c.fg(27);
+  const BLUE4 = c.fg(21);
+  const YELLOW = c.fg(226);
   const WHITE = c.bWhite;
   const MUTED = c.fg(240);
 
-  const rowColors = [BLUE, BLUE2, BLUE, RED2, RED, RED2];
+  const rowColors = [c.fg(87), c.fg(81), c.fg(45), BLUE, BLUE2, BLUE3];
 
   const W = Math.max(62, ...rows.map((row) => stripAnsi(row).length));
 
@@ -168,19 +174,19 @@ function banner() {
   console.log();
 
   console.log(
-    `  ${DIM}┌─[${c.reset}${BLUE}${c.bold}scafkit${c.reset}${DIM}]─[${c.reset}${RED}${c.bold}ready${c.reset}${DIM}]${c.reset}`,
+    `  ${DIM}┌─[${c.reset}${BLUE}${c.bold}scafkit${c.reset}${DIM}]─[${c.reset}${YELLOW}${c.bold}ready${c.reset}${DIM}]${c.reset}`,
   );
   console.log(
     `  ${DIM}├─${c.reset} ${MUTED}templates${c.reset}  ${BLUE}${c.bold}php${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}pern${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}react${c.reset}`,
   );
   console.log(
-    `  ${DIM}├─${c.reset} ${MUTED}create${c.reset}     ${RED}${c.bold}php${c.reset} ${c.white}<app>${c.reset}   ${DIM}|${c.reset}   ${RED}${c.bold}pern${c.reset} ${c.white}<app>${c.reset} ${DIM}--tw${c.reset}   ${DIM}|${c.reset}   ${RED}${c.bold}react${c.reset} ${c.white}<app>${c.reset} ${DIM}--js${c.reset}`,
+    `  ${DIM}├─${c.reset} ${MUTED}create${c.reset}     ${YELLOW}${c.bold}php${c.reset} ${c.white}<app>${c.reset}   ${DIM}|${c.reset}   ${YELLOW}${c.bold}pern${c.reset} ${c.white}<app>${c.reset} ${DIM}--tw${c.reset}   ${DIM}|${c.reset}   ${YELLOW}${c.bold}react${c.reset} ${c.white}<app>${c.reset} ${DIM}--js${c.reset}`,
   );
   console.log(
     `  ${DIM}├─${c.reset} ${MUTED}ops${c.reset}        ${BLUE}${c.bold}help${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}pwd${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}cd${c.reset} ${c.white}<dir>${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}run${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}update${c.reset}`,
   );
   console.log(
-    `  ${DIM}└─${c.reset} ${MUTED}php${c.reset}        ${RED}${c.bold}make:controller${c.reset} ${c.white}Invoice approve reject${c.reset}`,
+    `  ${DIM}└─${c.reset} ${MUTED}php${c.reset}        ${YELLOW}${c.bold}make:controller${c.reset} ${c.white}Invoice approve reject${c.reset}`,
   );
   console.log();
 }
@@ -255,7 +261,9 @@ const HELP_TOPICS = {
         ["--sq-mssql", "Use Sequelize v7 with Microsoft SQL Server"],
         ["--tw", "Include Tailwind CSS in the React client"],
         ["--ts / --js", "Choose TypeScript or JavaScript without prompting"],
-        ["--yes", "Use defaults for any prompts"],
+        ["--yes", "Use defaults and install dependencies without prompting"],
+        ["--no-install", "Create files without installing dependencies"],
+        ["--pm <name>", "Install with npm, pnpm, yarn, or bun"],
         ["--dir <path>", "Create the target folder inside another directory"],
         ["--dry-run", "Preview files without writing them"],
         ["--force", "Overwrite any existing files"],
@@ -294,7 +302,9 @@ const HELP_TOPICS = {
         ["--serverless", "Include Netlify Functions endpoints"],
         ["--tw", "Include Tailwind CSS"],
         ["--ts / --js", "Choose TypeScript or JavaScript without prompting"],
-        ["--yes", "Use defaults for any prompts"],
+        ["--yes", "Use defaults and install dependencies without prompting"],
+        ["--no-install", "Create files without installing dependencies"],
+        ["--pm <name>", "Install with npm, pnpm, yarn, or bun"],
         ["--dir <path>", "Create the target folder inside another directory"],
         ["--dry-run", "Preview files without writing them"],
         ["--force", "Overwrite any existing files"],
@@ -340,12 +350,12 @@ function help(topic) {
   const cmds = [
     [
       "scafkit pern   [folder]",
-      "--sq-pg --sq-mysql --tw --ts --js --yes --dir --dry-run --force",
+      "--sq-pg --sq-mysql --tw --ts --js --yes --no-install --pm --dir --dry-run --force",
       "PostgreSQL + Express + React + Node starter",
     ],
     [
       "scafkit react  [folder]",
-      "--serverless --tw --ts --js --yes --dir --dry-run --force",
+      "--serverless --tw --ts --js --yes --no-install --pm --dir --dry-run --force",
       "React TypeScript, optionally with Netlify Functions",
     ],
     [
@@ -376,7 +386,7 @@ function help(topic) {
   );
 
   console.log(
-    `  ${A2}${c.bold}clear${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}pwd${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}cd${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}run${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}status${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}stop${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}exit${c.reset}`,
+    `  ${A2}${c.bold}clear${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}pwd${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}cd${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}run${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}inspect${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}doctor${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}status${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}stop${c.reset}`,
   );
   console.log(
     `    ${DIM}Redraw banner ${ICON.dot} print directory ${ICON.dot} change directory ${ICON.dot} run dev servers ${ICON.dot} view or stop tracked servers.${c.reset}\n`,
@@ -389,7 +399,7 @@ function help(topic) {
   );
   console.log(`  ${A2}${c.bold}update${c.reset}`);
   console.log(
-    `    ${DIM}Check npm for a newer CLI version and install it after confirmation.${c.reset}\n`,
+    `    ${DIM}Check npm for a newer CLI version and install it after confirmation. Use update --check to only check.${c.reset}\n`,
   );
 
   console.log(`  ${hRule(52)}\n`);
@@ -425,12 +435,14 @@ function parseProjectArgs(args) {
     force: false,
     help: false,
     yes: false,
+    install: true,
     dryRun: false,
     sequelize: false,
     sequelizeDialect: null,
     serverless: false,
     tailwind: false,
     language: null,
+    packageManager: "npm",
     customFlags: [],
     positionals: [],
   };
@@ -444,6 +456,14 @@ function parseProjectArgs(args) {
       case "--yes":
       case "-y":
         options.yes = true;
+        break;
+      case "--no-install":
+        options.install = false;
+        break;
+      case "--pm":
+      case "--package-manager":
+        options.packageManager = normalizePackageManager(args[i + 1]);
+        i += 1;
         break;
       case "--dry-run":
         options.dryRun = true;
@@ -518,6 +538,78 @@ function resolveTargetDir(folderArg, outputDir) {
   }
 
   return path.resolve(process.cwd(), folderArg);
+}
+
+function normalizePackageManager(value) {
+  const pm = String(value || "npm").toLowerCase();
+
+  if (["npm", "pnpm", "yarn", "bun"].includes(pm)) {
+    return pm;
+  }
+
+  return "npm";
+}
+
+function detectPackageManager(projectDir, fallback = "npm") {
+  if (fs.existsSync(path.join(projectDir, "pnpm-lock.yaml"))) return "pnpm";
+  if (fs.existsSync(path.join(projectDir, "yarn.lock"))) return "yarn";
+  if (fs.existsSync(path.join(projectDir, "bun.lockb"))) return "bun";
+  if (fs.existsSync(path.join(projectDir, "bun.lock"))) return "bun";
+  if (fs.existsSync(path.join(projectDir, "package-lock.json"))) return "npm";
+
+  return normalizePackageManager(fallback);
+}
+
+function packageManagerArgs(packageManager, action, values = []) {
+  const pm = normalizePackageManager(packageManager);
+
+  if (action === "install") {
+    return pm === "npm" ? ["install", "--loglevel=error"] : ["install"];
+  }
+
+  if (action === "addDev") {
+    if (pm === "npm") return ["install", "-D", ...values, "--loglevel=error"];
+    if (pm === "bun") return ["add", "-d", ...values];
+    return ["add", "-D", ...values];
+  }
+
+  if (action === "run") {
+    return ["run", ...values];
+  }
+
+  return values;
+}
+
+function packageManagerCommand(packageManager, args, cwd, options = {}) {
+  const pm = normalizePackageManager(packageManager);
+
+  if (process.platform === "win32") {
+    return runCommand("cmd.exe", ["/d", "/s", "/c", `${pm} ${args.join(" ")}`], {
+      cwd,
+      ...options,
+    });
+  }
+
+  return runCommand(pm, args, { cwd, ...options });
+}
+
+function commandVersion(command, args = ["--version"]) {
+  const result =
+    process.platform === "win32"
+      ? spawnSync("cmd.exe", ["/d", "/s", "/c", `${command} ${args.join(" ")}`], {
+          encoding: "utf8",
+          shell: false,
+        })
+      : spawnSync(command, args, {
+          encoding: "utf8",
+          shell: false,
+        });
+
+  if (result.error || result.status !== 0) {
+    return null;
+  }
+
+  return String(result.stdout || result.stderr).trim().split(/\r?\n/)[0];
 }
 
 function printVersion() {
@@ -624,10 +716,24 @@ function createFallbackSpinner(text) {
     },
     succeed() {},
     fail() {},
+    stop() {},
+  };
+}
+
+function createSilentSpinner() {
+  return {
+    start() {},
+    succeed() {},
+    fail() {},
+    stop() {},
   };
 }
 
 async function createSpinner(text) {
+  if (!process.stdout.isTTY) {
+    return createSilentSpinner();
+  }
+
   const oraModule = await loadOra();
 
   if (!oraModule) {
@@ -713,10 +819,160 @@ async function askLanguage(rl, fallback = "typescript") {
   return "typescript";
 }
 
+function createPromptInterface() {
+  return readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+}
+
+function needsNpmInstall(targetDir) {
+  const packageJsonPath = path.join(targetDir, "package.json");
+
+  return (
+    fs.existsSync(packageJsonPath) &&
+    !fs.existsSync(path.join(targetDir, "node_modules"))
+  );
+}
+
+function renderDependencyInstallChoice(details, selected) {
+  const width = 68;
+  const contentWidth = width - 4;
+  const blue1 = c.fg(51);
+  const blue2 = c.fg(45);
+  const blue3 = c.fg(39);
+  const blue4 = c.fg(33);
+  const border = `${blue1}${c.bold}╭${blue2}${"─".repeat(width - 2)}${blue1}╮${c.reset}`;
+  const bottom = `${blue1}${c.bold}╰${blue2}${"─".repeat(width - 2)}${blue1}╯${c.reset}`;
+  const line = (content = "") =>
+    `${blue1}${c.bold}│${c.reset} ${padAnsiRight(content, contentWidth)} ${blue3}${c.bold}│${c.reset}`;
+  const divider = line(`${DIM}${"─".repeat(contentWidth)}${c.reset}`);
+  const targetLine =
+    details.targets.length === 1
+      ? details.targets[0].label
+      : details.targets.map((target) => target.label).join(", ");
+  const packageManager = normalizePackageManager(details.packageManager);
+  const option = (id, label, key) => {
+    const active = selected === id;
+    const radio = active ? "●" : "○";
+    const color = active ? blue4 + c.bold : DIM;
+    const keyColor = active ? blue2 + c.bold : DIM;
+
+    return `${color}${radio} ${label}${c.reset} ${keyColor}${key}${c.reset}`;
+  };
+  const choices = `${option("yes", "Install now", "Y")}     ${option("no", "Skip install", "N")}`;
+
+  const lines = [
+    "",
+    `  ${border}`,
+    `  ${line(`${blue4}${c.bold}Install dependencies?${c.reset}`)}`,
+    `  ${line(`${DIM}Run ${c.reset}${c.white}${packageManager} install${c.reset}${DIM} for ${c.reset}${c.white}${targetLine}${c.reset}`)}`,
+    `  ${divider}`,
+    `  ${line(choices)}`,
+    `  ${line(`${DIM}← / → choose   Enter select   --yes skips this prompt${c.reset}`)}`,
+    `  ${bottom}`,
+  ];
+
+  process.stdout.write(lines.join("\n"));
+  return lines.length;
+}
+
+function askDependencyInstallConfirmation(rl, details) {
+  return new Promise((resolve) => {
+    let selected = "yes";
+    let renderedLines = 0;
+    const wasRaw = process.stdin.isRaw;
+
+    function cleanup(answer) {
+      process.stdin.off("keypress", onKeypress);
+      if (process.stdin.isTTY) {
+        process.stdin.setRawMode(Boolean(wasRaw));
+      }
+      rl.resume();
+      process.stdout.write("\n");
+      resolve(answer);
+    }
+
+    function redraw() {
+      if (renderedLines > 0) {
+        readline.moveCursor(process.stdout, 0, -renderedLines);
+        readline.clearScreenDown(process.stdout);
+      }
+      renderedLines = renderDependencyInstallChoice(details, selected);
+    }
+
+    function onKeypress(str, key = {}) {
+      if (key.name === "left" || key.name === "right") {
+        selected = selected === "yes" ? "no" : "yes";
+        redraw();
+        return;
+      }
+
+      if (key.name === "return") {
+        cleanup(selected === "yes");
+        return;
+      }
+
+      if (key.name === "y") {
+        cleanup(true);
+        return;
+      }
+
+      if (key.name === "n" || key.name === "escape") {
+        cleanup(false);
+        return;
+      }
+
+      if (key.ctrl && key.name === "c") {
+        cleanup(false);
+      }
+    }
+
+    rl.pause();
+    readline.emitKeypressEvents(process.stdin);
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(true);
+    }
+    process.stdin.on("keypress", onKeypress);
+    process.stdin.resume();
+    redraw();
+  });
+}
+
+async function confirmDependencyInstall({
+  rl,
+  yes,
+  install,
+  packageManager = "npm",
+  targets,
+}) {
+  const installTargets = targets.filter((target) => needsNpmInstall(target.dir));
+
+  if (!install) {
+    return false;
+  }
+
+  if (yes || installTargets.length === 0) {
+    return true;
+  }
+
+  const promptRl = rl || createPromptInterface();
+  const shouldInstall = await askDependencyInstallConfirmation(promptRl, {
+    packageManager: normalizePackageManager(packageManager),
+    targets: installTargets,
+  });
+
+  if (!rl) {
+    promptRl.close();
+  }
+
+  return shouldInstall;
+}
+
 async function runCommand(command, args, options = {}) {
-  const { spinnerText, ...spawnOptions } = options;
+  const { spinnerText, capture = false, ...spawnOptions } = options;
   const spinner = spinnerText ? await createSpinner(spinnerText) : null;
-  const stdio = spinner ? ["ignore", "pipe", "pipe"] : "inherit";
+  const stdio = spinner || capture ? ["ignore", "pipe", "pipe"] : "inherit";
 
   return new Promise((resolve) => {
     let stdout = "";
@@ -792,8 +1048,9 @@ function npmCommand(args, cwd, options = {}) {
   return runCommand("npm", args, { cwd, ...options });
 }
 
-async function ensureNpmDependencies(targetDir) {
+async function ensurePackageDependencies(targetDir, packageManager = "npm") {
   const packageJsonPath = path.join(targetDir, "package.json");
+  const pm = normalizePackageManager(packageManager);
 
   if (!fs.existsSync(packageJsonPath)) {
     return { ok: false, message: "No package.json found" };
@@ -804,12 +1061,24 @@ async function ensureNpmDependencies(targetDir) {
   }
 
   console.log(`\n  ${DIM}${targetDir}${c.reset}`);
-  return npmCommand(["install", "--loglevel=error"], targetDir, {
-    spinnerText: "Installing dependencies",
-  });
+  const result = await packageManagerCommand(
+    pm,
+    packageManagerArgs(pm, "install"),
+    targetDir,
+    { spinnerText: `Installing dependencies with ${pm}` },
+  );
+
+  return result.ok
+    ? { ...result, message: `Installed with ${pm}` }
+    : result;
 }
 
-async function installDevPackages(targetDir, packages) {
+async function ensureNpmDependencies(targetDir) {
+  return ensurePackageDependencies(targetDir, detectPackageManager(targetDir));
+}
+
+async function installDevPackages(targetDir, packages, packageManager = "npm") {
+  const pm = normalizePackageManager(packageManager);
   const missing = packages.filter((packageName) => {
     const packagePath = packageName.startsWith("@")
       ? path.join(targetDir, "node_modules", ...packageName.split("/"))
@@ -822,15 +1091,24 @@ async function installDevPackages(targetDir, packages) {
   }
 
   console.log(`  ${DIM}${missing.join(", ")}${c.reset}`);
-  return npmCommand(
-    ["install", "-D", ...missing, "--loglevel=error"],
+  const result = await packageManagerCommand(
+    pm,
+    packageManagerArgs(pm, "addDev", missing),
     targetDir,
-    { spinnerText: "Installing dev runner tools" },
+    { spinnerText: `Installing dev tools with ${pm}` },
   );
+
+  return result.ok
+    ? { ...result, message: `Installed with ${pm}` }
+    : result;
 }
 
-async function ensureTailwindDependencies(targetDir) {
-  return installDevPackages(targetDir, ["tailwindcss", "@tailwindcss/vite"]);
+async function ensureTailwindDependencies(targetDir, packageManager = "npm") {
+  return installDevPackages(
+    targetDir,
+    ["tailwindcss", "@tailwindcss/vite"],
+    packageManager,
+  );
 }
 
 function copyEnvExample(targetDir) {
@@ -892,11 +1170,13 @@ async function handlePern(args, rl) {
     force,
     help: showHelp,
     yes,
+    install,
     dryRun,
     sequelize,
     sequelizeDialect,
     tailwind,
     language,
+    packageManager,
   } = parseProjectArgs(args);
   if (showHelp) {
     help("pern");
@@ -934,15 +1214,35 @@ async function handlePern(args, rl) {
       ),
     );
     copyEnvExample(path.join(result.targetDir, "server"));
-    const clientInstall = await ensureNpmDependencies(
-      path.join(result.targetDir, "client"),
-    );
-    const serverInstall = await ensureNpmDependencies(
-      path.join(result.targetDir, "server"),
-    );
-    const tailwindInstall = tailwind
-      ? await ensureTailwindDependencies(path.join(result.targetDir, "client"))
-      : { ok: true, message: "Not included" };
+    const clientDir = path.join(result.targetDir, "client");
+    const serverDir = path.join(result.targetDir, "server");
+    const shouldInstallDependencies = await confirmDependencyInstall({
+      rl,
+      yes,
+      install,
+      packageManager,
+      targets: [
+        { label: "React client", dir: clientDir },
+        { label: "Express server", dir: serverDir },
+      ],
+    });
+    const clientInstall = shouldInstallDependencies
+      ? await ensurePackageDependencies(clientDir, packageManager)
+      : { ok: true, message: install ? "Skipped by user" : "Skipped by --no-install" };
+    const serverInstall = shouldInstallDependencies
+      ? await ensurePackageDependencies(serverDir, packageManager)
+      : { ok: true, message: install ? "Skipped by user" : "Skipped by --no-install" };
+    const tailwindInstall =
+      tailwind && shouldInstallDependencies
+        ? await ensureTailwindDependencies(clientDir, packageManager)
+        : {
+            ok: true,
+            message: tailwind
+              ? install
+                ? "Skipped by user"
+                : "Skipped by --no-install"
+              : "Not included",
+          };
 
     if (!tailwindInstall.ok) {
       printError("Tailwind install failed", tailwindInstall.message);
@@ -956,6 +1256,7 @@ async function handlePern(args, rl) {
       ["Target", result.targetDir],
       ["Files", `${result.created.length} created`],
       ["Language", selectedLanguage],
+      ["Package manager", packageManager],
       ["Database", databaseLabel],
       ["Tailwind", tailwind ? tailwindInstall.message : "Not included"],
       ["Client install", clientInstall.message],
@@ -986,10 +1287,12 @@ async function handleReact(args, rl) {
     force,
     help: showHelp,
     yes,
+    install,
     dryRun,
     serverless,
     tailwind,
     language,
+    packageManager,
   } = parseProjectArgs(args);
   if (showHelp) {
     help("react");
@@ -1024,10 +1327,27 @@ async function handleReact(args, rl) {
         }),
       ),
     );
-    const installResult = await ensureNpmDependencies(result.targetDir);
-    const tailwindInstall = tailwind
-      ? await ensureTailwindDependencies(result.targetDir)
-      : { ok: true, message: "Not included" };
+    const shouldInstallDependencies = await confirmDependencyInstall({
+      rl,
+      yes,
+      install,
+      packageManager,
+      targets: [{ label: "React app", dir: result.targetDir }],
+    });
+    const installResult = shouldInstallDependencies
+      ? await ensurePackageDependencies(result.targetDir, packageManager)
+      : { ok: true, message: install ? "Skipped by user" : "Skipped by --no-install" };
+    const tailwindInstall =
+      tailwind && shouldInstallDependencies
+        ? await ensureTailwindDependencies(result.targetDir, packageManager)
+        : {
+            ok: true,
+            message: tailwind
+              ? install
+                ? "Skipped by user"
+                : "Skipped by --no-install"
+              : "Not included",
+          };
 
     if (!tailwindInstall.ok) {
       printError("Tailwind install failed", tailwindInstall.message);
@@ -1038,13 +1358,18 @@ async function handleReact(args, rl) {
       ["Target", result.targetDir],
       ["Files", `${result.created.length} created`],
       ["Language", selectedLanguage],
+      ["Package manager", packageManager],
       ["Mode", serverless ? "Netlify serverless web app" : "Frontend only"],
       ["Tailwind", tailwind ? tailwindInstall.message : "Not included"],
       ["Install", installResult.message],
     ]);
     printSkipped(result.skipped);
     printNextSteps(
-      [`cd ${cdTarget(folderArg)}`, "scafkit run", "npm run build"],
+      [
+        `cd ${cdTarget(folderArg)}`,
+        "scafkit run",
+        `${packageManager} run build`,
+      ],
       "Run  help react  for the full options reference.",
     );
   } catch (err) {
@@ -1394,8 +1719,15 @@ async function printServerStatus(
   console.log(`\n  ${A}${c.bold}${ICON.work} Server status${c.reset}`);
   console.log(`  ${hRule(58)}`);
 
-  for (const server of servers) {
-    const status = await getServerStatus(server);
+  const statuses = await withSpinner("Checking server status", async () => {
+    const results = [];
+    for (const server of servers) {
+      results.push([server, await getServerStatus(server)]);
+    }
+    return results;
+  });
+
+  for (const [server, status] of statuses) {
     const color = status === "active" ? c.green : c.bBlack;
     console.log(
       `  ${A}${server.id.padEnd(10)}${c.reset} ${c.white}${server.label.padEnd(16)}${c.reset} ${color}${status}${c.reset}`,
@@ -1458,6 +1790,102 @@ function runNpmCommand(args, options = {}) {
   });
 }
 
+function printCheckRows(title, rows) {
+  console.log(`\n  ${A}${c.bold}${ICON.work} ${title}${c.reset}`);
+  console.log(`  ${hRule(58)}`);
+  rows.forEach(([label, value, ok = true]) => {
+    const color = ok ? c.white : A3;
+    console.log(`  ${DIM}${label.padEnd(28)}${c.reset}${color}${value}${c.reset}`);
+  });
+  console.log();
+}
+
+async function handleDoctor() {
+  const diagnostics = await withSpinner("Running diagnostics", async () => {
+    let latest = "Not checked";
+
+    try {
+      latest = await getLatestPackageVersion({ spinner: false });
+    } catch {
+      latest = "Unable to reach npm registry";
+    }
+
+    return {
+      latest,
+      nodeVersion: process.version,
+      npmVersion: commandVersion("npm") || "Not found",
+      gitVersion: commandVersion("git", ["--version"]) || "Not found",
+      phpVersion: commandVersion("php", ["-v"]) || "Not found",
+      composerVersion: commandVersion("composer", ["--version"]) || "Not found",
+      packageManagers: ["pnpm", "yarn", "bun"]
+        .map((pm) => `${pm}: ${commandVersion(pm) || "not found"}`)
+        .join("  "),
+    };
+  });
+
+  printCheckRows("Scafkit doctor", [
+    ["Scafkit", `${PKG.version} (latest: ${diagnostics.latest})`],
+    ["Node", diagnostics.nodeVersion],
+    ["npm", diagnostics.npmVersion, diagnostics.npmVersion !== "Not found"],
+    ["Git", diagnostics.gitVersion, diagnostics.gitVersion !== "Not found"],
+    ["PHP", diagnostics.phpVersion, diagnostics.phpVersion !== "Not found"],
+    [
+      "Composer",
+      diagnostics.composerVersion,
+      diagnostics.composerVersion !== "Not found",
+    ],
+    ["Other PMs", diagnostics.packageManagers],
+  ]);
+}
+
+async function handleInspect() {
+  const project = await withSpinner("Inspecting project", () =>
+    Promise.resolve(detectProjectKind(process.cwd())),
+  );
+
+  if (!project) {
+    printError(
+      "Project not detected",
+      "Run inspect inside a generated React, PERN, PHP, or Node project.",
+    );
+    return;
+  }
+
+  const rows = [["Type", project.kind], ["Root", project.rootDir]];
+
+  if (project.kind === "PERN") {
+    rows.push(
+      ["Client", project.clientDir],
+      ["Server", project.serverDir],
+      ["Client PM", detectPackageManager(project.clientDir)],
+      ["Server PM", detectPackageManager(project.serverDir)],
+    );
+    printCheckRows("Project inspect", [
+      ...rows,
+      ...packageScriptRows(project.clientDir, "client"),
+      ...packageScriptRows(project.serverDir, "server"),
+    ]);
+    return;
+  }
+
+  if (project.packageDir) {
+    rows.push(
+      ["Package", project.packageJson?.name || path.basename(project.packageDir)],
+      ["Package manager", detectPackageManager(project.packageDir)],
+    );
+    printCheckRows("Project inspect", [
+      ...rows,
+      ...packageScriptRows(project.packageDir, "script"),
+    ]);
+    return;
+  }
+
+  printCheckRows("Project inspect", [
+    ...rows,
+    ["Run", "scafkit run php"],
+  ]);
+}
+
 function compareVersions(left, right) {
   const leftParts = String(left)
     .split(/[.-]/)
@@ -1478,11 +1906,13 @@ function compareVersions(left, right) {
   return 0;
 }
 
-async function getLatestPackageVersion() {
+async function getLatestPackageVersion(options = {}) {
+  const spinnerText =
+    options.spinner === false ? null : "Checking for updates";
   const result = await npmCommand(
     ["view", PKG.name, "version", "--loglevel=error"],
     process.cwd(),
-    { spinnerText: "Checking for updates" },
+    spinnerText ? { spinnerText } : { capture: true },
   );
 
   if (!result.ok) {
@@ -1493,15 +1923,36 @@ async function getLatestPackageVersion() {
 }
 
 function renderUpdateChoice(details, selected) {
-  const yes = selected === "yes";
-  const no = selected === "no";
+  const width = 58;
+  const contentWidth = width - 4;
+  const blue1 = c.fg(51);
+  const blue2 = c.fg(45);
+  const blue3 = c.fg(39);
+  const blue4 = c.fg(33);
+  const border = `${blue1}${c.bold}╭${blue2}${"─".repeat(width - 2)}${blue1}╮${c.reset}`;
+  const bottom = `${blue1}${c.bold}╰${blue2}${"─".repeat(width - 2)}${blue1}╯${c.reset}`;
+  const line = (content = "") =>
+    `${blue1}${c.bold}│${c.reset} ${padAnsiRight(content, contentWidth)} ${blue3}${c.bold}│${c.reset}`;
+  const divider = line(`${DIM}${"-".repeat(contentWidth)}${c.reset}`);
+  const option = (id, label, key) => {
+    const active = selected === id;
+    const radio = active ? "●" : "○";
+    const color = active ? blue4 + c.bold : DIM;
+    const keyColor = active ? blue2 + c.bold : DIM;
+
+    return `${color}${radio} ${label}${c.reset} ${keyColor}${key}${c.reset}`;
+  };
+
   const lines = [
-    `${A}${c.bold}╭${"─".repeat(50)}╮${c.reset}`,
-    `${A}${c.bold}│${c.reset} ${c.bold}Update available${c.reset}${" ".repeat(32)}${A}${c.bold}│${c.reset}`,
-    `${A}${c.bold}│${c.reset} ${DIM}${PKG.name}${c.reset} ${c.white}${details.current}${c.reset} ${DIM}${ICON.next}${c.reset} ${A2}${c.bold}${details.latest}${c.reset}${" ".repeat(Math.max(0, 31 - details.current.length - details.latest.length))}${A}${c.bold}│${c.reset}`,
-    `${A}${c.bold}│${c.reset} ${DIM}Use left/right arrows, then Enter.${c.reset}${" ".repeat(12)}${A}${c.bold}│${c.reset}`,
-    `${A}${c.bold}│${c.reset} ${yes ? A2 + c.bold : DIM}${yes ? ICON.selected : ICON.unselected} Yes${c.reset}        ${no ? A2 + c.bold : DIM}${no ? ICON.selected : ICON.unselected} No${c.reset}${" ".repeat(23)}${A}${c.bold}│${c.reset}`,
-    `${A}${c.bold}╰${"─".repeat(50)}╯${c.reset}`,
+    "",
+    `  ${border}`,
+    `  ${line(`${blue4}${c.bold}Update available${c.reset}`)}`,
+    `  ${line(`${DIM}${PKG.name}${c.reset}`)}`,
+    `  ${line(`${c.white}${details.current}${c.reset} ${DIM}->${c.reset} ${blue4}${c.bold}${details.latest}${c.reset}`)}`,
+    `  ${divider}`,
+    `  ${line(`${option("yes", "Install update", "Y")}    ${option("no", "Skip for now", "N")}`)}`,
+    `  ${line(`${DIM}Use left/right arrows, then Enter.${c.reset}`)}`,
+    `  ${bottom}`,
   ];
 
   process.stdout.write(lines.join("\n"));
@@ -1570,11 +2021,22 @@ function askUpdateConfirmation(rl, details) {
   });
 }
 
-async function handleUpdate(_args, rl) {
+async function handleUpdate(args = [], rl) {
   try {
+    const checkOnly = args.includes("--check") || args.includes("-c");
     const latest = await getLatestPackageVersion();
+    const isCurrent = compareVersions(PKG.version, latest) >= 0;
 
-    if (compareVersions(PKG.version, latest) >= 0) {
+    if (checkOnly) {
+      printSuccess(isCurrent ? "CLI is up to date" : "CLI update available", [
+        ["Package", PKG.name],
+        ["Current", PKG.version],
+        ["Latest", latest],
+      ]);
+      return;
+    }
+
+    if (isCurrent) {
       printSuccess("CLI is up to date", [
         ["Package", PKG.name],
         ["Current", PKG.version],
@@ -1683,6 +2145,68 @@ function findPernProjectDirs(startDir) {
       clientDir: parentClient,
       serverDir: parentServer,
     };
+  }
+
+  return null;
+}
+
+function readPackageJson(projectDir) {
+  const packageJsonPath = path.join(projectDir, "package.json");
+
+  if (!fs.existsSync(packageJsonPath)) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function packageScriptRows(projectDir, label) {
+  const packageJson = readPackageJson(projectDir);
+  const scripts = packageJson?.scripts || {};
+  const entries = Object.keys(scripts);
+
+  if (entries.length === 0) {
+    return [[label, "No scripts found"]];
+  }
+
+  return entries.map((name) => [
+    `${label}:${name}`,
+    `${detectPackageManager(projectDir)} run ${name}`,
+  ]);
+}
+
+function detectProjectKind(startDir) {
+  const pernDirs = findPernProjectDirs(startDir);
+
+  if (pernDirs) {
+    return { kind: "PERN", ...pernDirs };
+  }
+
+  const packageDir = findRunnableProjectDir(startDir) || findNearestPackageDir(startDir);
+  if (packageDir) {
+    const packageJson = readPackageJson(packageDir);
+    const deps = {
+      ...packageJson?.dependencies,
+      ...packageJson?.devDependencies,
+    };
+
+    return {
+      kind: deps.react ? "React" : "Node",
+      rootDir: packageDir,
+      packageDir,
+      packageJson,
+    };
+  }
+
+  if (
+    fs.existsSync(path.join(startDir, "public", "index.php")) ||
+    fs.existsSync(path.join(startDir, "app", "Controllers"))
+  ) {
+    return { kind: "PHP MVC", rootDir: startDir };
   }
 
   return null;
@@ -2125,6 +2649,8 @@ const commandHandlers = Object.freeze({
   cd: handleCd,
   chdir: handleCd,
   run: handleRun,
+  inspect: handleInspect,
+  doctor: handleDoctor,
   status: handleStatus,
   stop: handleStop,
   update: handleUpdate,
@@ -2132,11 +2658,15 @@ const commandHandlers = Object.freeze({
   "craft:controller": handleMakeController,
   exit: (args, rl) => {
     console.log(`\n  ${DIM}Session closed. Goodbye.${c.reset}\n`);
-    rl.close();
+    if (rl) {
+      rl.close();
+    }
   },
   quit: (args, rl) => {
     console.log(`\n  ${DIM}Session closed. Goodbye.${c.reset}\n`);
-    rl.close();
+    if (rl) {
+      rl.close();
+    }
   },
   pern: handlePern,
   react: handleReact,

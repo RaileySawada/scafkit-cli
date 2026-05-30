@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.0.4
+
+### CLI
+
+- Added dependency-install confirmation with radio-style keyboard selection.
+- Added `--no-install` for React and PERN project creation.
+- Added `--pm <npm|pnpm|yarn|bun>` for package-manager-aware dependency installation.
+- Added `doctor` to check local Scafkit, Node, npm, Git, PHP, Composer, and package-manager availability.
+- Added `inspect` to detect the current project and list package scripts.
+- Added `update --check` for update checks without installing.
+- Expanded Ora spinner usage across diagnostics, inspection, server status checks, generation, installation, and update flows.
+
+### Design
+
+- Removed red from normal CLI styling and reserved it for errors.
+- Updated confirmation prompts to use blue radio controls.
+- Updated the banner to use a blue-only vertical gradient.
+
 ## 1.0.3
 
 ### CLI
