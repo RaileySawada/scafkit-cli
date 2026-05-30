@@ -63,16 +63,21 @@ function createReactPackageJson(packageName, serverless, tailwind, language = 't
 }
 
 function createAppTsx(serverless, tailwind) {
-  const shellClass = tailwind ? 'min-h-screen bg-zinc-950 text-zinc-100' : 'app-shell';
-  const layoutClass = tailwind ? 'mx-auto grid min-h-screen w-[min(1120px,calc(100vw-2rem))] content-center gap-6 py-12 lg:grid-cols-[1.5fr_0.8fr]' : 'app-grid';
-  const heroClass = tailwind ? 'rounded-lg border border-zinc-800 bg-zinc-900 p-8 shadow-2xl' : 'hero-panel';
-  const asideClass = tailwind ? 'rounded-lg border border-zinc-800 bg-zinc-900 p-6' : 'side-panel';
-  const buttonClass = tailwind ? 'inline-flex items-center gap-2 rounded-md bg-sky-400 px-4 py-3 font-bold text-sky-950 hover:bg-sky-300 disabled:cursor-wait disabled:opacity-70' : 'primary-button';
-  const preClass = tailwind ? 'mt-6 min-h-28 overflow-auto rounded-md border border-zinc-800 bg-zinc-950 p-4 text-sm text-sky-200' : 'response-box';
+  const shellClass = tailwind ? 'app-shell min-h-screen bg-[#07111f] text-slate-50' : 'app-shell';
+  const layoutClass = tailwind ? 'mx-auto grid min-h-screen w-[min(1180px,calc(100vw-2rem))] content-center gap-4 py-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]' : 'app-grid';
+  const heroClass = tailwind ? 'rounded-lg border border-cyan-300/20 bg-slate-900/90 p-6 shadow-2xl shadow-black/30 sm:p-10' : 'hero-panel';
+  const asideClass = tailwind ? 'rounded-lg border border-cyan-300/20 bg-slate-900/85 p-6 shadow-2xl shadow-black/25' : 'side-panel';
+  const buttonClass = tailwind ? 'inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-300 px-4 py-3 font-black text-slate-950 transition hover:bg-sky-300 disabled:cursor-wait disabled:opacity-70' : 'primary-button';
+  const preClass = tailwind ? 'mt-5 min-h-28 overflow-auto rounded-lg border border-cyan-300/20 bg-slate-950/80 p-4 text-sm text-cyan-100' : 'response-box';
+  const kickerClass = tailwind ? 'mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase text-yellow-300' : 'eyebrow';
+  const statGridClass = tailwind ? 'mt-6 grid gap-3 sm:grid-cols-3' : 'stat-grid';
+  const statClass = tailwind ? 'rounded-lg border border-cyan-300/20 bg-slate-950/60 p-3 text-sm text-slate-300' : 'stat-card';
+  const featureGridClass = tailwind ? 'mt-4 grid gap-3 sm:grid-cols-3' : 'feature-grid';
+  const featureClass = tailwind ? 'rounded-lg border border-cyan-300/20 bg-slate-950/55 p-4' : 'feature-card';
 
   if (serverless) {
     return String.raw`import { useEffect, useState } from 'react';
-import { Server, Sparkles, TerminalSquare } from 'lucide-react';
+import { Rocket, Server, ShieldCheck, Sparkles, TerminalSquare } from 'lucide-react';
 import { getServerlessMessage } from '../lib/services/serverlessService';
 import '../styles.css';
 
@@ -108,14 +113,19 @@ export default function App() {
     <main className="${shellClass}">
       <div className="${layoutClass}">
         <section className="${heroClass}">
-          <div className="eyebrow">
+          <div className="${kickerClass}">
             <Sparkles size={18} />
             Scafkit React Serverless
           </div>
-          <h1>React TypeScript with serverless endpoints.</h1>
+          <h1>Launch a polished React app with serverless endpoints already wired.</h1>
           <p>
-            Client code, API calls, services, types, and Netlify functions are organized so the app can grow without turning into a drawer of loose files.
+            Scafkit gives the starter a production-minded shape: app shell, service layer, API helpers, typed contracts, and deploy-ready functions in one responsive interface.
           </p>
+          <div className="${statGridClass}">
+            <span className="${statClass}"><strong>Vite</strong> fast dev loop</span>
+            <span className="${statClass}"><strong>Netlify</strong> functions</span>
+            <span className="${statClass}"><strong>Scafkit</strong> structure</span>
+          </div>
           <button className="${buttonClass}" onClick={loadServerlessMessage} disabled={apiState.status === 'loading'}>
             <Server size={18} />
             Call function
@@ -123,11 +133,16 @@ export default function App() {
           <pre className="${preClass}">{apiState.message}</pre>
         </section>
         <aside className="${asideClass}">
-          <TerminalSquare size={24} />
-          <h2>Project shape</h2>
+          <Rocket size={28} />
+          <h2>Project cockpit</h2>
           <p>
-            Start in src/app for app shell work, src/features for product behavior, and src/lib for reusable browser infrastructure.
+            Start in src/app for the shell, src/features for product behavior, and src/lib for reusable client infrastructure.
           </p>
+          <div className="${featureGridClass}">
+            <article className="${featureClass}"><TerminalSquare size={20} /><strong>Commands</strong><span>npm run dev</span></article>
+            <article className="${featureClass}"><ShieldCheck size={20} /><strong>Patterns</strong><span>services first</span></article>
+            <article className="${featureClass}"><Sparkles size={20} /><strong>Palette</strong><span>Scafkit cyan</span></article>
+          </div>
         </aside>
       </div>
     </main>
@@ -137,7 +152,7 @@ export default function App() {
   }
 
   return String.raw`import { useMemo, useState } from 'react';
-import { Boxes, Cpu, LibraryBig } from 'lucide-react';
+import { Boxes, Cpu, Layers3, LibraryBig, Sparkles } from 'lucide-react';
 import { createRequestClient } from '../lib/api/requestClient';
 import { createStorageService } from '../lib/services/storageService';
 import '../styles.css';
@@ -158,14 +173,19 @@ export default function App() {
     <main className="${shellClass}">
       <div className="${layoutClass}">
         <section className="${heroClass}">
-          <div className="eyebrow">
+          <div className="${kickerClass}">
             <Boxes size={18} />
             Scafkit React TypeScript
           </div>
-          <h1>Frontend app with a real client-side architecture.</h1>
+          <h1>A modern React starter that already looks like a Scafkit product.</h1>
           <p>
-            The scaffold separates app shell, reusable components, features, services, adapters, API clients, types, and utilities.
+            A responsive landing surface, service-ready architecture, and clear ownership zones give you a confident first screen before the real product takes over.
           </p>
+          <div className="${statGridClass}">
+            <span className="${statClass}"><strong>React</strong> app shell</span>
+            <span className="${statClass}"><strong>Services</strong> included</span>
+            <span className="${statClass}"><strong>Responsive</strong> by default</span>
+          </div>
           <button className="${buttonClass}" onClick={runClientDemo}>
             <Cpu size={18} />
             Run client demo
@@ -173,11 +193,16 @@ export default function App() {
           <pre className="${preClass}">{result}</pre>
         </section>
         <aside className="${asideClass}">
-          <LibraryBig size={24} />
-          <h2>Senior-friendly layout</h2>
+          <LibraryBig size={28} />
+          <h2>Built to stay organized</h2>
           <p>
             Put product modules in src/features and reusable infrastructure in src/lib so ownership stays obvious as the codebase grows.
           </p>
+          <div className="${featureGridClass}">
+            <article className="${featureClass}"><Layers3 size={20} /><strong>Layers</strong><span>app, lib, features</span></article>
+            <article className="${featureClass}"><Sparkles size={20} /><strong>Brand</strong><span>Scafkit palette</span></article>
+            <article className="${featureClass}"><Boxes size={20} /><strong>Starter</strong><span>ready to extend</span></article>
+          </div>
         </aside>
       </div>
     </main>
@@ -205,21 +230,49 @@ function createStyles(tailwind) {
   body {
     margin: 0;
     min-width: 320px;
+    background: #07111f;
+  }
+
+  h1 {
+    margin: 0;
+    max-width: 48rem;
+    font-size: clamp(2.15rem, 6vw, 4.9rem);
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  h2 {
+    margin-top: 1rem;
+    font-size: 1.5rem;
+    font-weight: 900;
+  }
+
+  p {
+    color: #cbd5e1;
+    line-height: 2;
   }
 }
 
 @layer components {
-  .eyebrow {
-    @apply mb-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-sky-300;
+  .app-shell {
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.22), transparent 32rem),
+      radial-gradient(circle at bottom right, rgba(250, 204, 21, 0.12), transparent 28rem),
+      linear-gradient(135deg, #07111f 0%, #0c1727 54%, #08111f 100%);
   }
 }
 `;
   }
 
   return String.raw`:root {
-  color: #e5e7eb;
-  background: #18181b;
+  color: #eff6ff;
+  background: #07111f;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --line: rgba(125, 211, 252, 0.22);
+  --muted: #a8bed8;
+  --cyan: #22d3ee;
+  --blue: #38bdf8;
+  --gold: #facc15;
 }
 
 * {
@@ -238,27 +291,30 @@ button {
 
 .app-shell {
   min-height: 100vh;
-  background: #18181b;
-  color: #e5e7eb;
+  background:
+    radial-gradient(circle at top left, rgba(34, 211, 238, 0.22), transparent 32rem),
+    radial-gradient(circle at bottom right, rgba(250, 204, 21, 0.12), transparent 28rem),
+    linear-gradient(135deg, #07111f 0%, #0c1727 54%, #08111f 100%);
+  color: #eff6ff;
 }
 
 .app-grid {
-  width: min(1120px, calc(100vw - 2rem));
+  width: min(1180px, calc(100vw - 2rem));
   min-height: 100vh;
   margin: 0 auto;
-  padding: 3rem 0;
+  padding: 2rem 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.8fr);
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 1rem;
   align-content: center;
 }
 
 .hero-panel,
 .side-panel {
-  border: 1px solid rgba(161, 161, 170, 0.22);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: #27272a;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+  background: rgba(12, 28, 48, 0.9);
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.34);
 }
 
 .hero-panel {
@@ -278,7 +334,12 @@ button {
 
 .eyebrow {
   margin-bottom: 1rem;
-  color: #7dd3fc;
+  width: fit-content;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  background: rgba(34, 211, 238, 0.1);
+  color: var(--gold);
   font-weight: 900;
   text-transform: uppercase;
   font-size: 0.78rem;
@@ -296,17 +357,53 @@ h2 {
 }
 
 p {
-  color: #d4d4d8;
+  color: var(--muted);
   line-height: 1.75;
+}
+
+.stat-grid,
+.feature-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.stat-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 1.5rem 0;
+}
+
+.feature-grid {
+  grid-template-columns: 1fr;
+  margin-top: 1rem;
+}
+
+.stat-card,
+.feature-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(7, 17, 31, 0.68);
+  padding: 0.85rem;
+  color: var(--muted);
+}
+
+.stat-card strong,
+.feature-card strong {
+  display: block;
+  color: #eff6ff;
+}
+
+.feature-card {
+  display: grid;
+  gap: 0.4rem;
 }
 
 .primary-button {
   border: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 0.85rem 1rem;
-  background: #38bdf8;
-  color: #082f49;
-  font-weight: 800;
+  background: linear-gradient(135deg, var(--cyan), var(--blue));
+  color: #06111f;
+  font-weight: 900;
   cursor: pointer;
 }
 
@@ -321,16 +418,20 @@ p {
   margin: 1.5rem 0 0;
   padding: 1rem;
   overflow: auto;
-  border-radius: 6px;
-  color: #bae6fd;
-  background: #09090b;
-  border: 1px solid rgba(161, 161, 170, 0.22);
+  border-radius: 8px;
+  color: #cffafe;
+  background: rgba(7, 17, 31, 0.82);
+  border: 1px solid var(--line);
 }
 
 @media (max-width: 850px) {
   .app-grid {
     grid-template-columns: 1fr;
     padding: 2rem 0;
+  }
+
+  .stat-grid {
+    grid-template-columns: 1fr;
   }
 }
 `;

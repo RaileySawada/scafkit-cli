@@ -7,6 +7,7 @@ const os = require("os");
 const {
   generatePhpProject,
   generatePhpController,
+  generatePhpRoute,
 } = require("../src/generators/phpGenerator");
 const { generatePernProject } = require("../src/generators/pernGenerator");
 const { generateReactProject } = require("../src/generators/reactGenerator");
@@ -186,7 +187,7 @@ function banner() {
     `  ${DIM}├─${c.reset} ${MUTED}ops${c.reset}        ${BLUE}${c.bold}help${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}pwd${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}cd${c.reset} ${c.white}<dir>${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}run${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}update${c.reset}`,
   );
   console.log(
-    `  ${DIM}└─${c.reset} ${MUTED}php${c.reset}        ${YELLOW}${c.bold}make:controller${c.reset} ${c.white}Invoice approve reject${c.reset}`,
+    `  ${DIM}└─${c.reset} ${MUTED}php${c.reset}        ${YELLOW}${c.bold}make:controller${c.reset} ${c.white}Invoice approve reject${c.reset} ${DIM}/${c.reset} ${YELLOW}${c.bold}make:route${c.reset}`,
   );
   console.log();
 }
@@ -218,7 +219,10 @@ const HELP_TOPICS = {
       formatOptions([
         ["[folder]", "Target folder — use . for current directory"],
         ["make:controller", "Create a controller in the current PHP starter"],
+        ["make:route", "Append a route and scaffold missing MVC files"],
         ["methodName", "Add one or more methods to the controller"],
+        ["--tw", "Include Tailwind CSS through the generated layout"],
+        ["--bs", "Include Bootstrap through the generated layout"],
         ["--dir <path>", "Create the target folder inside another directory"],
         ["--dry-run", "Preview files without writing them"],
         ["--force", "Overwrite any existing files"],
@@ -237,6 +241,7 @@ const HELP_TOPICS = {
         "cp .env.example .env",
         "scafkit run php",
         "scafkit make:controller Invoice approve reject",
+        "scafkit make:route GET /invoices InvoiceController@index",
       ]),
     );
     console.log();
@@ -360,7 +365,7 @@ function help(topic) {
     ],
     [
       "scafkit php    [folder]",
-      "--dir --dry-run --force | make:controller",
+      "--tw --bs --dir --dry-run --force | make:controller | make:route",
       "PHP MVC authentication starter",
     ],
   ];
@@ -413,6 +418,9 @@ function help(topic) {
     `  ${A}${ICON.arrow}${c.reset} scafkit make:controller Invoice approve reject`,
   );
   console.log(
+    `  ${A}${ICON.arrow}${c.reset} scafkit make:route GET /invoices InvoiceController@index`,
+  );
+  console.log(
     `\n  ${DIM}${c.italic}Tip: run ${c.reset}${A}help pern${c.reset}${DIM}${c.italic}, ${c.reset}${A}help react${c.reset}${DIM}${c.italic}, or ${c.reset}${A}help php${c.reset}${DIM}${c.italic} for focused guidance.${c.reset}\n`,
   );
 }
@@ -441,6 +449,7 @@ function parseProjectArgs(args) {
     sequelizeDialect: null,
     serverless: false,
     tailwind: false,
+    bootstrap: false,
     language: null,
     packageManager: "npm",
     customFlags: [],
@@ -508,6 +517,10 @@ function parseProjectArgs(args) {
       case "--tw":
       case "--tailwind":
         options.tailwind = true;
+        break;
+      case "--bs":
+      case "--bootstrap":
+        options.bootstrap = true;
         break;
       case "--ts":
       case "--typescript":
@@ -877,6 +890,16 @@ function renderDependencyInstallChoice(details, selected) {
   return lines.length;
 }
 
+function clearRenderedPromptBlock(renderedLines) {
+  if (renderedLines <= 0) {
+    return;
+  }
+
+  readline.moveCursor(process.stdout, 0, -(renderedLines - 1));
+  readline.cursorTo(process.stdout, 0);
+  readline.clearScreenDown(process.stdout);
+}
+
 function askDependencyInstallConfirmation(rl, details) {
   return new Promise((resolve) => {
     let selected = "yes";
@@ -894,10 +917,7 @@ function askDependencyInstallConfirmation(rl, details) {
     }
 
     function redraw() {
-      if (renderedLines > 0) {
-        readline.moveCursor(process.stdout, 0, -renderedLines);
-        readline.clearScreenDown(process.stdout);
-      }
+      clearRenderedPromptBlock(renderedLines);
       renderedLines = renderDependencyInstallChoice(details, selected);
     }
 
@@ -1384,27 +1404,39 @@ async function handlePhp(args) {
     force,
     help: showHelp,
     dryRun,
+    tailwind,
+    bootstrap,
   } = parseProjectArgs(args);
   if (showHelp) {
     help("php");
     return;
   }
 
+  if (tailwind && bootstrap) {
+    printError(
+      "Choose one CSS framework",
+      "Use either --tw for Tailwind, --bs for Bootstrap, or no flag for regular CSS.",
+    );
+    return;
+  }
+
+  const cssFramework = tailwind ? "tailwind" : bootstrap ? "bootstrap" : "css";
   const targetDir = resolveTargetDir(folderArg, outputDir);
   try {
     if (dryRun) {
       await runProjectGeneratorDryRun("PHP starter", targetDir, (previewDir) =>
-        generatePhpProject({ targetDir: previewDir, force }),
+        generatePhpProject({ targetDir: previewDir, force, cssFramework }),
       );
       return;
     }
 
     const result = await withSpinner("Generating PHP project", () =>
-      Promise.resolve(generatePhpProject({ targetDir, force })),
+      Promise.resolve(generatePhpProject({ targetDir, force, cssFramework })),
     );
     printSuccess("PHP starter created", [
       ["Target", result.targetDir],
       ["Files", `${result.created.length} created`],
+      ["CSS", cssFramework],
     ]);
     printSkipped(result.skipped);
     printNextSteps(
@@ -1455,6 +1487,81 @@ async function handleMakeController(args) {
     printSkipped(result.skipped);
   } catch (err) {
     printError("PHP controller generation failed", err.message);
+  }
+}
+
+async function handleMakeRoute(args) {
+  if (args.includes("--help") || args.includes("-h")) {
+    help("php");
+    return;
+  }
+
+  const force = args.includes("--force") || args.includes("-f");
+  let method = "GET";
+  const positionals = [];
+
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+
+    if (arg === "--force" || arg === "-f") {
+      continue;
+    }
+
+    if (arg === "--method" || arg === "-m") {
+      method = args[i + 1] || method;
+      i += 1;
+      continue;
+    }
+
+    if (arg.startsWith("--method=")) {
+      method = arg.slice("--method=".length);
+      continue;
+    }
+
+    if (!arg.startsWith("-")) {
+      positionals.push(arg);
+    }
+  }
+
+  if (["GET", "POST", "PUT", "PATCH", "DELETE"].includes(String(positionals[0] || "").toUpperCase())) {
+    method = positionals.shift();
+  }
+
+  const routePath = positionals[0];
+  const handler = positionals[1];
+
+  if (!routePath || !handler) {
+    printError(
+      "Route path and handler required",
+      "Use: scafkit make:route GET /dashboard DashboardController@index",
+    );
+    return;
+  }
+
+  try {
+    const result = await withSpinner("Creating PHP route", () =>
+      Promise.resolve(
+        generatePhpRoute({
+          targetDir: process.cwd(),
+          routePath,
+          handler,
+          method,
+          force,
+        }),
+      ),
+    );
+    printSuccess("PHP route created", [
+      ["Target", result.targetDir],
+      ["Files", `${result.created.length} changed`],
+      ["Route", `${result.method} ${result.route}`],
+      ["Handler", result.handler],
+      ["Controller", result.controller],
+      ["Model", result.model],
+      ["View", result.view],
+    ]);
+    printSkipped(result.skipped);
+  } catch (err) {
+    printError("PHP route generation failed", err.message);
   }
 }
 
@@ -1976,10 +2083,7 @@ function askUpdateConfirmation(rl, details) {
     }
 
     function redraw() {
-      if (renderedLines > 0) {
-        readline.moveCursor(process.stdout, 0, -renderedLines);
-        readline.clearScreenDown(process.stdout);
-      }
+      clearRenderedPromptBlock(renderedLines);
       renderedLines = renderUpdateChoice(details, selected);
     }
 
@@ -2656,6 +2760,8 @@ const commandHandlers = Object.freeze({
   update: handleUpdate,
   "make:controller": handleMakeController,
   "craft:controller": handleMakeController,
+  "make:route": handleMakeRoute,
+  "craft:route": handleMakeRoute,
   exit: (args, rl) => {
     console.log(`\n  ${DIM}Session closed. Goodbye.${c.reset}\n`);
     if (rl) {

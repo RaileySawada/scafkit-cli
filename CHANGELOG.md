@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.0.5
+
+### PHP
+
+- Added `routes/web.php` and a small generated router for Laravel-like route editing.
+- Added `scafkit make:route` to append routes and scaffold missing controller, model, and page view files.
+- Updated route scaffolding so existing controllers are preserved and only missing action methods are added.
+- Updated route-created page names to come from the route path, such as `/Hehe` creating `Hehe.php`.
+- Added `App\Core\View` so generated PHP page files stay content-only while layouts are applied from one renderer.
+- Skipped the shared layout wrapper for AJAX-style PHP view renders to keep partial responses clean.
+- Redesigned generated PHP pages with a responsive Scafkit-branded interface across regular CSS, Bootstrap, and Tailwind modes.
+- Added PHP starter `--tw` and `--bs` flags for Tailwind or Bootstrap layout assets.
+- Improved generated PHP base-path handling for XAMPP subfolder projects.
+
+### React and PERN
+
+- Redesigned generated React and PERN client screens with a responsive Scafkit-branded interface for both regular CSS and Tailwind modes.
+- Added richer starter panels, stack highlights, and useful demo/status surfaces while keeping the generated architecture intact.
+
+### Maintenance
+
+- Kept Socket.dev in the strict release maintenance path through `security:socket`, `security:strict`, and `prepublishOnly`.
+
 ## 1.0.4
 
 ### CLI

@@ -168,15 +168,20 @@ function createServerPackageJson(packageName, sequelizeDialect, language = 'type
 }
 
 function createClientApp(tailwind) {
-  const shellClass = tailwind ? 'min-h-screen bg-slate-950 text-slate-100' : 'app-shell';
-  const panelClass = tailwind ? 'mx-auto grid min-h-screen w-[min(1120px,calc(100vw-2rem))] content-center gap-6 py-12 lg:grid-cols-[1.5fr_0.8fr]' : 'app-grid';
-  const heroClass = tailwind ? 'rounded-lg border border-slate-800 bg-slate-900 p-8 shadow-2xl' : 'hero-panel';
-  const asideClass = tailwind ? 'rounded-lg border border-slate-800 bg-slate-900 p-6' : 'side-panel';
-  const buttonClass = tailwind ? 'inline-flex items-center gap-2 rounded-md bg-emerald-400 px-4 py-3 font-bold text-emerald-950 hover:bg-emerald-300' : 'primary-button';
-  const preClass = tailwind ? 'mt-6 min-h-36 overflow-auto rounded-md border border-slate-800 bg-slate-950 p-4 text-sm text-emerald-200' : 'response-box';
+  const shellClass = tailwind ? 'app-shell min-h-screen bg-[#07111f] text-slate-50' : 'app-shell';
+  const panelClass = tailwind ? 'mx-auto grid min-h-screen w-[min(1180px,calc(100vw-2rem))] content-center gap-4 py-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]' : 'app-grid';
+  const heroClass = tailwind ? 'rounded-lg border border-cyan-300/20 bg-slate-900/90 p-6 shadow-2xl shadow-black/30 sm:p-10' : 'hero-panel';
+  const asideClass = tailwind ? 'rounded-lg border border-cyan-300/20 bg-slate-900/85 p-6 shadow-2xl shadow-black/25' : 'side-panel';
+  const buttonClass = tailwind ? 'inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-300 px-4 py-3 font-black text-slate-950 transition hover:bg-sky-300' : 'primary-button';
+  const preClass = tailwind ? 'mt-5 min-h-36 overflow-auto rounded-lg border border-cyan-300/20 bg-slate-950/80 p-4 text-sm text-cyan-100' : 'response-box';
+  const kickerClass = tailwind ? 'mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase text-yellow-300' : 'eyebrow';
+  const statGridClass = tailwind ? 'mt-6 grid gap-3 sm:grid-cols-3' : 'stat-grid';
+  const statClass = tailwind ? 'rounded-lg border border-cyan-300/20 bg-slate-950/60 p-3 text-sm text-slate-300' : 'stat-card';
+  const featureGridClass = tailwind ? 'mt-4 grid gap-3 sm:grid-cols-3' : 'feature-grid';
+  const featureClass = tailwind ? 'rounded-lg border border-cyan-300/20 bg-slate-950/55 p-4' : 'feature-card';
 
   return String.raw`import { useEffect, useState } from 'react';
-import { Database, RefreshCcw, Server } from 'lucide-react';
+import { Braces, Database, RefreshCcw, Server, ShieldCheck } from 'lucide-react';
 import { getHealthStatus } from '../lib/services/healthService';
 import type { HealthStatus } from '../lib/types/api';
 import '../styles.css';
@@ -202,14 +207,19 @@ export default function App() {
     <main className="${shellClass}">
       <div className="${panelClass}">
         <section className="${heroClass}">
-          <div className="eyebrow">
+          <div className="${kickerClass}">
             <Server size={18} />
             Scafkit PERN Platform
           </div>
-          <h1>React client, Express API, PostgreSQL data layer.</h1>
+          <h1>A full-stack Scafkit workspace with a dashboard-ready first screen.</h1>
           <p>
-            The generated structure keeps browser code, API code, database scripts, and operational files in clear ownership zones.
+            React client, Express API, database scripts, routes, services, and deployment notes land in clear ownership zones with a responsive interface up front.
           </p>
+          <div className="${statGridClass}">
+            <span className="${statClass}"><strong>React</strong> client</span>
+            <span className="${statClass}"><strong>Express</strong> API</span>
+            <span className="${statClass}"><strong>Postgres</strong> ready</span>
+          </div>
           <button className="${buttonClass}" onClick={refreshHealth}>
             <RefreshCcw size={18} />
             Check API
@@ -222,6 +232,11 @@ export default function App() {
           <p>
             Server config, routes, services, models, database scripts, Docker files, and deployment notes are grouped where teams expect them.
           </p>
+          <div className="${featureGridClass}">
+            <article className="${featureClass}"><Braces size={20} /><strong>API</strong><span>/api/health</span></article>
+            <article className="${featureClass}"><ShieldCheck size={20} /><strong>Ops</strong><span>docker notes</span></article>
+            <article className="${featureClass}"><Server size={20} /><strong>Scafkit</strong><span>clear layers</span></article>
+          </div>
         </aside>
       </div>
     </main>
@@ -249,21 +264,49 @@ function createClientStyles(tailwind) {
   body {
     margin: 0;
     min-width: 320px;
+    background: #07111f;
+  }
+
+  h1 {
+    margin: 0;
+    max-width: 48rem;
+    font-size: clamp(2.15rem, 6vw, 4.9rem);
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  h2 {
+    margin-top: 1rem;
+    font-size: 1.5rem;
+    font-weight: 900;
+  }
+
+  p {
+    color: #cbd5e1;
+    line-height: 2;
   }
 }
 
 @layer components {
-  .eyebrow {
-    @apply mb-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-300;
+  .app-shell {
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.22), transparent 32rem),
+      radial-gradient(circle at bottom right, rgba(250, 204, 21, 0.12), transparent 28rem),
+      linear-gradient(135deg, #07111f 0%, #0c1727 54%, #08111f 100%);
   }
 }
 `;
   }
 
   return String.raw`:root {
-  color: #e5e7eb;
-  background: #0f172a;
+  color: #eff6ff;
+  background: #07111f;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --line: rgba(125, 211, 252, 0.22);
+  --muted: #a8bed8;
+  --cyan: #22d3ee;
+  --blue: #38bdf8;
+  --gold: #facc15;
 }
 
 * {
@@ -282,27 +325,30 @@ button {
 
 .app-shell {
   min-height: 100vh;
-  background: #0f172a;
-  color: #e5e7eb;
+  background:
+    radial-gradient(circle at top left, rgba(34, 211, 238, 0.22), transparent 32rem),
+    radial-gradient(circle at bottom right, rgba(250, 204, 21, 0.12), transparent 28rem),
+    linear-gradient(135deg, #07111f 0%, #0c1727 54%, #08111f 100%);
+  color: #eff6ff;
 }
 
 .app-grid {
-  width: min(1120px, calc(100vw - 2rem));
+  width: min(1180px, calc(100vw - 2rem));
   min-height: 100vh;
   margin: 0 auto;
-  padding: 3rem 0;
+  padding: 2rem 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.8fr);
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 1rem;
   align-content: center;
 }
 
 .hero-panel,
 .side-panel {
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: #111827;
-  box-shadow: 0 24px 80px rgba(2, 6, 23, 0.35);
+  background: rgba(12, 28, 48, 0.9);
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.34);
 }
 
 .hero-panel {
@@ -322,7 +368,12 @@ button {
 
 .eyebrow {
   margin-bottom: 1rem;
-  color: #86efac;
+  width: fit-content;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  background: rgba(34, 211, 238, 0.1);
+  color: var(--gold);
   font-weight: 900;
   text-transform: uppercase;
   font-size: 0.78rem;
@@ -340,17 +391,53 @@ h2 {
 }
 
 p {
-  color: #cbd5e1;
+  color: var(--muted);
   line-height: 1.75;
+}
+
+.stat-grid,
+.feature-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.stat-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 1.5rem 0;
+}
+
+.feature-grid {
+  grid-template-columns: 1fr;
+  margin-top: 1rem;
+}
+
+.stat-card,
+.feature-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(7, 17, 31, 0.68);
+  padding: 0.85rem;
+  color: var(--muted);
+}
+
+.stat-card strong,
+.feature-card strong {
+  display: block;
+  color: #eff6ff;
+}
+
+.feature-card {
+  display: grid;
+  gap: 0.4rem;
 }
 
 .primary-button {
   border: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 0.85rem 1rem;
-  background: #34d399;
-  color: #052e16;
-  font-weight: 800;
+  background: linear-gradient(135deg, var(--cyan), var(--blue));
+  color: #06111f;
+  font-weight: 900;
   cursor: pointer;
 }
 
@@ -360,16 +447,20 @@ p {
   margin: 1.5rem 0 0;
   padding: 1rem;
   overflow: auto;
-  border-radius: 6px;
-  color: #bbf7d0;
-  background: #020617;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  color: #cffafe;
+  background: rgba(7, 17, 31, 0.82);
+  border: 1px solid var(--line);
 }
 
 @media (max-width: 850px) {
   .app-grid {
     grid-template-columns: 1fr;
     padding: 2rem 0;
+  }
+
+  .stat-grid {
+    grid-template-columns: 1fr;
   }
 }
 `;

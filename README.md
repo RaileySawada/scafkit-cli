@@ -82,7 +82,7 @@ scafkit react my-app --pm bun
 | --- | --- | --- |
 | React | `scafkit react my-app` | React app with scalable `src` layout, Vite scripts, optional Tailwind, and optional Netlify Functions |
 | PERN | `scafkit pern my-api` | React client plus Express server, PostgreSQL-ready defaults, optional Sequelize dialects, and copied server `.env` |
-| PHP MVC | `scafkit php my-auth-app` | PHP MVC authentication starter with controllers, models, views, routing, sessions, `.env.example`, and SQL schema |
+| PHP MVC | `scafkit php my-auth-app` | PHP MVC authentication starter with controllers, models, editable routes, sessions, `.env.example`, and SQL schema |
 
 ## Flags
 
@@ -124,11 +124,14 @@ PHP flags and helpers:
 
 | Command or flag | Description |
 | --- | --- |
+| `--tw`, `--tailwind` | Include Tailwind CSS in the generated PHP layout |
+| `--bs`, `--bootstrap` | Include Bootstrap in the generated PHP layout |
 | `--dir <path>` | Create the PHP starter inside another directory |
 | `--dry-run` | Preview files without writing |
 | `--force`, `-f` | Overwrite existing generated files |
 | `scafkit make:controller Invoice` | Create `app/Controllers/InvoiceController.php` |
 | `scafkit make:controller Invoice approve reject` | Create a controller with extra methods |
+| `scafkit make:route GET /invoices InvoiceController@index` | Append a route and scaffold missing controller/model/view files |
 
 ## Commands
 
@@ -188,11 +191,33 @@ Preview a PHP starter without writing files:
 scafkit php auth-app --dry-run
 ```
 
+Create a PHP starter with a CSS framework:
+
+```bash
+scafkit php auth-app --tw
+scafkit php auth-app --bs
+```
+
 Create a PHP controller:
 
 ```bash
 scafkit make:controller Invoice approve reject
 ```
+
+Create a PHP route:
+
+```bash
+scafkit make:route GET /invoices InvoiceController@index
+scafkit make:route POST /invoices InvoiceController@store
+```
+
+`make:route` keeps existing files safe. It creates the controller, model, and page view only when they do not already exist. If the controller exists but the routed action is missing, Scafkit adds only that method and leaves the rest of the controller untouched.
+
+Generated PHP page files are content-only. The shared head, header, toast, footer, and scripts are applied by `App\Core\View`, and AJAX-style requests skip that wrapper so partial responses stay clean. Route-created page names come from the route path, so `scafkit make:route /Hehe HeheController@ewan` creates `app/Views/Pages/Hehe.php`.
+
+## Maintenance
+
+Release checks include Socket.dev through `npm run security:socket`, `npm run security:strict`, and the `prepublishOnly` gate.
 
 Inspect a generated project:
 
