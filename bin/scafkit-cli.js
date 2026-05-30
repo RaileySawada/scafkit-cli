@@ -3,6 +3,7 @@
 const readline = require("readline");
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
 const {
   generatePhpProject,
   generatePhpController,
@@ -212,6 +213,8 @@ const HELP_TOPICS = {
         ["[folder]", "Target folder — use . for current directory"],
         ["make:controller", "Create a controller in the current PHP starter"],
         ["methodName", "Add one or more methods to the controller"],
+        ["--dir <path>", "Create the target folder inside another directory"],
+        ["--dry-run", "Preview files without writing them"],
         ["--force", "Overwrite any existing files"],
         ["--help", "Show this guide without writing files"],
       ]),
@@ -252,6 +255,9 @@ const HELP_TOPICS = {
         ["--sq-mssql", "Use Sequelize v7 with Microsoft SQL Server"],
         ["--tw", "Include Tailwind CSS in the React client"],
         ["--ts / --js", "Choose TypeScript or JavaScript without prompting"],
+        ["--yes", "Use defaults for any prompts"],
+        ["--dir <path>", "Create the target folder inside another directory"],
+        ["--dry-run", "Preview files without writing them"],
         ["--force", "Overwrite any existing files"],
         ["--help", "Show this guide without writing files"],
       ]),
@@ -288,6 +294,9 @@ const HELP_TOPICS = {
         ["--serverless", "Include Netlify Functions endpoints"],
         ["--tw", "Include Tailwind CSS"],
         ["--ts / --js", "Choose TypeScript or JavaScript without prompting"],
+        ["--yes", "Use defaults for any prompts"],
+        ["--dir <path>", "Create the target folder inside another directory"],
+        ["--dry-run", "Preview files without writing them"],
         ["--force", "Overwrite any existing files"],
         ["--help", "Show this guide without writing files"],
       ]),
@@ -331,17 +340,17 @@ function help(topic) {
   const cmds = [
     [
       "scafkit pern   [folder]",
-      "--sq-pg --sq-mysql --tw --ts --js --force --help",
+      "--sq-pg --sq-mysql --tw --ts --js --yes --dir --dry-run --force",
       "PostgreSQL + Express + React + Node starter",
     ],
     [
       "scafkit react  [folder]",
-      "--serverless --tw --ts --js --force --help",
+      "--serverless --tw --ts --js --yes --dir --dry-run --force",
       "React TypeScript, optionally with Netlify Functions",
     ],
     [
       "scafkit php    [folder]",
-      "make:controller --force --help",
+      "--dir --dry-run --force | make:controller",
       "PHP MVC authentication starter",
     ],
   ];
@@ -357,6 +366,13 @@ function help(topic) {
   );
   console.log(
     `    ${DIM}Detailed usage, options, and recommended commands.${c.reset}\n`,
+  );
+
+  console.log(
+    `  ${A2}${c.bold}create${c.reset} ${c.white}<php|pern|react> <folder>${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}list${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}version${c.reset}`,
+  );
+  console.log(
+    `    ${DIM}Create by template name, list available starters, or print the installed version.${c.reset}\n`,
   );
 
   console.log(
@@ -405,8 +421,11 @@ function parseProjectArgs(args) {
   const options = {
     folderArg: ".",
     hasFolderArg: false,
+    outputDir: null,
     force: false,
     help: false,
+    yes: false,
+    dryRun: false,
     sequelize: false,
     sequelizeDialect: null,
     serverless: false,
@@ -415,11 +434,24 @@ function parseProjectArgs(args) {
     customFlags: [],
     positionals: [],
   };
-  for (const arg of args) {
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
     switch (arg) {
       case "--force":
       case "-f":
         options.force = true;
+        break;
+      case "--yes":
+      case "-y":
+        options.yes = true;
+        break;
+      case "--dry-run":
+        options.dryRun = true;
+        break;
+      case "--dir":
+      case "--out-dir":
+        options.outputDir = args[i + 1] || null;
+        i += 1;
         break;
       case "--help":
       case "-h":
@@ -478,6 +510,60 @@ function parseProjectArgs(args) {
     }
   }
   return options;
+}
+
+function resolveTargetDir(folderArg, outputDir) {
+  if (outputDir) {
+    return path.resolve(process.cwd(), outputDir, folderArg);
+  }
+
+  return path.resolve(process.cwd(), folderArg);
+}
+
+function printVersion() {
+  console.log(`${PKG.name} v${PKG.version}`);
+}
+
+function printTemplateList() {
+  console.log(`\n  ${c.bold}Templates${c.reset}`);
+  console.log(`  ${hRule(44)}`);
+  console.log(`  ${A}${c.bold}php${c.reset}    ${c.white}PHP MVC authentication starter${c.reset}`);
+  console.log(`  ${A}${c.bold}pern${c.reset}   ${c.white}PostgreSQL + Express + React + Node starter${c.reset}`);
+  console.log(`  ${A}${c.bold}react${c.reset}  ${c.white}React app, optionally with Netlify Functions${c.reset}`);
+  console.log(`\n  ${DIM}Use ${c.reset}${A}scafkit create <template> <folder>${c.reset}${DIM} or ${c.reset}${A}scafkit <template> <folder>${c.reset}${DIM}.${c.reset}\n`);
+}
+
+function printDryRunResult(template, targetDir, result) {
+  const relativeFiles = result.created.map((filePath) =>
+    path.relative(result.targetDir, filePath),
+  );
+
+  printSuccess(`${template} dry run`, [
+    ["Target", targetDir],
+    ["Files", `${relativeFiles.length} would be created`],
+  ]);
+
+  relativeFiles.slice(0, 24).forEach((filePath) => {
+    console.log(`  ${DIM}${ICON.arrow}${c.reset} ${filePath}`);
+  });
+
+  if (relativeFiles.length > 24) {
+    console.log(`  ${DIM}...and ${relativeFiles.length - 24} more file(s)${c.reset}`);
+  }
+
+  console.log(`\n  ${DIM}No files were written.${c.reset}\n`);
+}
+
+async function runProjectGeneratorDryRun(template, targetDir, generator) {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "scafkit-dry-run-"));
+  const tempTarget = path.join(tempRoot, path.basename(targetDir));
+
+  try {
+    const result = await Promise.resolve(generator(tempTarget));
+    printDryRunResult(template, targetDir, result);
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
 }
 
 function cdTarget(folderArg) {
@@ -802,8 +888,11 @@ function runNpmInstall(targetDir) {
 async function handlePern(args, rl) {
   const {
     folderArg,
+    outputDir,
     force,
     help: showHelp,
+    yes,
+    dryRun,
     sequelize,
     sequelizeDialect,
     tailwind,
@@ -814,9 +903,24 @@ async function handlePern(args, rl) {
     return;
   }
 
-  const targetDir = path.resolve(process.cwd(), folderArg);
+  const targetDir = resolveTargetDir(folderArg, outputDir);
   try {
-    const selectedLanguage = language || (await askLanguage(rl));
+    const selectedLanguage = language || (yes ? "typescript" : await askLanguage(rl));
+
+    if (dryRun) {
+      await runProjectGeneratorDryRun("PERN starter", targetDir, (previewDir) =>
+        generatePernProject({
+          targetDir: previewDir,
+          force,
+          sequelize,
+          sequelizeDialect,
+          tailwind,
+          language: selectedLanguage,
+        }),
+      );
+      return;
+    }
+
     const result = await withSpinner("Generating PERN project", () =>
       Promise.resolve(
         generatePernProject({
@@ -878,8 +982,11 @@ async function handlePern(args, rl) {
 async function handleReact(args, rl) {
   const {
     folderArg,
+    outputDir,
     force,
     help: showHelp,
+    yes,
+    dryRun,
     serverless,
     tailwind,
     language,
@@ -889,9 +996,23 @@ async function handleReact(args, rl) {
     return;
   }
 
-  const targetDir = path.resolve(process.cwd(), folderArg);
+  const targetDir = resolveTargetDir(folderArg, outputDir);
   try {
-    const selectedLanguage = language || (await askLanguage(rl));
+    const selectedLanguage = language || (yes ? "typescript" : await askLanguage(rl));
+
+    if (dryRun) {
+      await runProjectGeneratorDryRun("React starter", targetDir, (previewDir) =>
+        generateReactProject({
+          targetDir: previewDir,
+          force,
+          serverless,
+          tailwind,
+          language: selectedLanguage,
+        }),
+      );
+      return;
+    }
+
     const result = await withSpinner("Generating React project", () =>
       Promise.resolve(
         generateReactProject({
@@ -932,14 +1053,27 @@ async function handleReact(args, rl) {
 }
 
 async function handlePhp(args) {
-  const { folderArg, force, help: showHelp } = parseProjectArgs(args);
+  const {
+    folderArg,
+    outputDir,
+    force,
+    help: showHelp,
+    dryRun,
+  } = parseProjectArgs(args);
   if (showHelp) {
     help("php");
     return;
   }
 
-  const targetDir = path.resolve(process.cwd(), folderArg);
+  const targetDir = resolveTargetDir(folderArg, outputDir);
   try {
+    if (dryRun) {
+      await runProjectGeneratorDryRun("PHP starter", targetDir, (previewDir) =>
+        generatePhpProject({ targetDir: previewDir, force }),
+      );
+      return;
+    }
+
     const result = await withSpinner("Generating PHP project", () =>
       Promise.resolve(generatePhpProject({ targetDir, force })),
     );
@@ -997,6 +1131,42 @@ async function handleMakeController(args) {
   } catch (err) {
     printError("PHP controller generation failed", err.message);
   }
+}
+
+async function handleCreate(args, rl) {
+  const template = args[0] && args[0].toLowerCase();
+
+  if (!template || args.includes("--help") || args.includes("-h")) {
+    console.log(`\n  ${A}${c.bold}Create a starter${c.reset}`);
+    console.log(`  ${hRule(44)}`);
+    console.log(`  ${A}scafkit create react my-app --tw --yes${c.reset}`);
+    console.log(`  ${A}scafkit create pern api-app --sq-pg --dir ../projects${c.reset}`);
+    console.log(`  ${A}scafkit create php auth-app --dry-run${c.reset}\n`);
+    printTemplateList();
+    return;
+  }
+
+  const rest = args.slice(1);
+
+  if (template === "react") {
+    await handleReact(rest, rl);
+    return;
+  }
+
+  if (template === "pern") {
+    await handlePern(rest, rl);
+    return;
+  }
+
+  if (template === "php") {
+    await handlePhp(rest);
+    return;
+  }
+
+  printError(
+    "Unknown template",
+    `Use one of: react, pern, php. Received: ${template}`,
+  );
 }
 
 function printError(title, message) {
@@ -1932,7 +2102,17 @@ async function runBackendFile(filePath) {
 
 const commandHandlers = Object.freeze({
   help: (args) => help(args[0]),
+  "--help": () => help(),
+  "-h": () => help(),
   "?": (args) => help(args[0]),
+  version: () => printVersion(),
+  "--version": () => printVersion(),
+  "-v": () => printVersion(),
+  list: () => printTemplateList(),
+  "--list": () => printTemplateList(),
+  templates: () => printTemplateList(),
+  create: handleCreate,
+  new: handleCreate,
   clear: () => {
     console.clear();
     banner();

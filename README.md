@@ -1,147 +1,71 @@
-# Scafkit
+# Scafkit CLI
 
-Interactive starter-project generator for PHP MVC, PERN, and React TypeScript apps.
+Scafkit is an interactive project scaffolding CLI for creating PHP MVC, PERN, and React starter apps.
 
-The `scafkit` command opens the interactive shell and also accepts commands directly.
-
-## Install
+## Installation
 
 ```bash
 npm install -g scafkit-cli
+```
+
+Run the interactive shell:
+
+```bash
 scafkit
 ```
 
-## Commands
-
-### PHP MVC Starter
+Or create a project directly:
 
 ```bash
-scafkit php my-login-app
-scafkit php .
-scafkit php my-login-app --force
+scafkit create react my-app --tw --yes
 ```
 
-Creates a PHP MVC authentication starter with controllers, models, views, session handling, routing, database config, `.env.example`, and SQL schema.
+## Available Starters
 
-After generating:
+| Starter | Command | Creates |
+| --- | --- | --- |
+| PHP MVC | `scafkit php my-app` | PHP authentication starter with MVC folders, routes, views, `.env.example`, and SQL schema |
+| PERN | `scafkit pern my-app` | React client and Express API with PostgreSQL-ready server structure |
+| React | `scafkit react my-app` | React app with a scalable `src` layout and optional Netlify Functions |
+
+You can also use the explicit create form:
 
 ```bash
-cd my-login-app
-cp .env.example .env
-php -S localhost:8000 -t public
+scafkit create php my-app
+scafkit create pern my-app
+scafkit create react my-app
 ```
 
-### PHP Controller Scaffold
+## Common Options
 
-```bash
-scafkit make:controller Invoice
-scafkit make:controller Invoice approve reject
-```
-
-Creates a controller in `app/Controllers` inside the current PHP project. Extra method names become controller methods. With no extra methods, the controller only includes the default `index()` method.
-
-Example:
-
-```bash
-scafkit make:controller Invoice approve reject
-```
-
-Creates:
-
-```txt
-app/Controllers/InvoiceController.php
-```
-
-With:
-
-```php
-index()
-approve()
-reject()
-```
-
-### PERN Starter
-
-```bash
-scafkit pern my-app
-scafkit pern my-app --tw
-scafkit pern my-app --js
-scafkit pern my-app --sq-pg
-scafkit pern my-app --sq-mysql --tw
-scafkit pern my-app --sq-sqlite
-scafkit pern my-app --sq-mariadb
-scafkit pern my-app --sq-mssql
-scafkit pern . --sq-pg --tw --force
-```
-
-Creates a full-stack project with only two root folders:
-
-```txt
-client/
-server/
-```
-
-The default backend uses PostgreSQL with `pg`. Sequelize mode uses Sequelize v7 alpha with a dialect-specific package:
-
-| Flag | Database |
+| Option | Description |
 | --- | --- |
-| `--sq-pg` | PostgreSQL |
-| `--sq-mysql` | MySQL |
-| `--sq-sqlite` | SQLite |
-| `--sq-mariadb` | MariaDB |
-| `--sq-mssql` | Microsoft SQL Server |
+| `--help` | Show help for a command |
+| `--version` | Print the installed Scafkit version |
+| `--list` | List available starters |
+| `--dir <path>` | Create the project inside another directory |
+| `--dry-run` | Preview generated files without writing them |
+| `--force` | Overwrite existing generated files |
+| `--yes`, `-y` | Use default answers for prompts |
 
-`--sequelize` is still accepted as an alias for `--sq-pg`.
-
-Use `--tw` to include Tailwind CSS v4 in the React client.
-
-Scafkit asks whether you want TypeScript or JavaScript when creating React or PERN projects. You can skip the prompt with `--ts` or `--js`.
-
-After generating:
-
-```bash
-cd my-app/server
-scafkit server/src/index.ts
-```
-
-In another terminal:
-
-```bash
-cd my-app/client
-scafkit run
-```
-
-Client: `http://localhost:5173`  
-Server: `http://localhost:4000`
-
-### React TypeScript Starter
+## React Starter
 
 ```bash
 scafkit react my-frontend
 scafkit react my-frontend --tw
 scafkit react my-frontend --js
 scafkit react my-frontend --serverless
-scafkit react my-frontend --serverless --tw
-scafkit react . --serverless --tw --force
+scafkit react my-frontend --serverless --tw --yes
 ```
 
-Creates a React TypeScript app with a senior-friendly structure:
+React options:
 
-```txt
-src/app/
-src/components/
-src/features/
-src/lib/
-```
-
-Use `--tw` to include Tailwind CSS v4. Use `--serverless` to include Netlify Functions:
-
-Scafkit asks whether you want TypeScript or JavaScript. Use `--ts` or `--js` to choose directly.
-
-```txt
-netlify/functions/hello.ts
-netlify.toml
-```
+| Option | Description |
+| --- | --- |
+| `--tw`, `--tailwind` | Include Tailwind CSS |
+| `--serverless` | Include Netlify Functions |
+| `--ts`, `--typescript` | Generate TypeScript files |
+| `--js`, `--javascript` | Generate JavaScript files |
 
 After generating:
 
@@ -150,59 +74,116 @@ cd my-frontend
 scafkit run
 ```
 
-For serverless mode:
+## PERN Starter
+
+```bash
+scafkit pern my-app
+scafkit pern my-app --tw
+scafkit pern my-app --js
+scafkit pern my-app --sq-pg
+scafkit pern my-app --sq-mysql --tw
+scafkit pern my-app --sq-sqlite
+```
+
+PERN database options:
+
+| Option | Database |
+| --- | --- |
+| `--sq-pg` | PostgreSQL with Sequelize |
+| `--sq-mysql` | MySQL with Sequelize |
+| `--sq-sqlite` | SQLite with Sequelize |
+| `--sq-mariadb` | MariaDB with Sequelize |
+| `--sq-mssql` | Microsoft SQL Server with Sequelize |
+
+After generating:
+
+```bash
+cd my-app
+```
+
+Start the React client:
 
 ```bash
 scafkit run
 ```
 
+Start the Express API:
+
+```bash
+scafkit server/src/index.ts
+```
+
+## PHP MVC Starter
+
+```bash
+scafkit php my-login-app
+scafkit php my-login-app --force
+scafkit php . --dry-run
+```
+
+After generating:
+
+```bash
+cd my-login-app
+cp .env.example .env
+scafkit run php
+```
+
+## PHP Controller Generator
+
+Inside a generated PHP project:
+
+```bash
+scafkit make:controller Invoice
+scafkit make:controller Invoice approve reject
+```
+
+This creates:
+
+```txt
+app/Controllers/InvoiceController.php
+```
+
+Extra names become controller methods.
+
 ## Utility Commands
 
 | Command | Description |
 | --- | --- |
-| `help` | Show available commands |
-| `help php` | Show PHP-specific help |
-| `help pern` | Show PERN-specific help |
-| `help react` | Show React-specific help |
-| `clear` / `cls` | Clear and redraw the CLI |
+| `help` | Show command help |
+| `help php` | Show PHP starter help |
+| `help pern` | Show PERN starter help |
+| `help react` | Show React starter help |
+| `list` | Show available starters |
+| `version` | Print the installed version |
 | `pwd` | Print the current working directory |
-| `cd <folder>` | Change the current working directory |
-| `make:controller <name> [methods...]` | Create a PHP controller in the current Scafkit PHP project |
-| `scafkit run` / `run` | Install missing Node dependencies and open the React/Vite dev server |
-| `scafkit <file>` | Install missing Node dependencies and run a backend `.js` or `.ts` entry file with nodemon |
-| `scafkit run php` / `run php` | Open a PHP project with XAMPP link detection or PHP's built-in server |
-| `update` / `scafkit update` | Check npm for a newer CLI version |
-| `exit` / `quit` | Close the CLI |
+| `cd <folder>` | Change the current working directory inside the Scafkit shell |
+| `run` | Start a React or Vite project |
+| `run php` | Start a PHP project |
+| `status` | Show managed dev-server status |
+| `stop` | Stop managed dev servers |
+| `update` | Check npm for a newer Scafkit version |
+| `exit` | Close the interactive shell |
 
-## Update Command
+## Examples
 
-Inside the CLI shell:
-
-```bash
-update
-scafkit update
-```
-
-If a newer version exists, Scafkit shows a terminal confirmation box. Use the left/right arrow keys to select `Yes` or `No`, then press Enter. Selecting `Yes` installs the latest global version from npm.
-
-## Release Security
-
-Before publishing, Scafkit runs:
+Preview a project without writing files:
 
 ```bash
-npm run check
-npm run security
+scafkit react dashboard --tw --dry-run
 ```
 
-`npm run security` runs `npm audit --audit-level=moderate` and blocks publishing on moderate or higher npm advisories.
-
-For the stricter Socket.dev supply-chain policy check, run:
+Create a TypeScript PERN app in another directory:
 
 ```bash
-npm run security:strict
+scafkit create pern inventory --sq-pg --tw --dir ../projects --yes
 ```
 
-Run `npm run security:socket:login` or set `SOCKET_SECURITY_API_TOKEN` before using the strict Socket check.
+Create a JavaScript React app:
+
+```bash
+scafkit react client --js
+```
 
 ## License
 

@@ -38,6 +38,6 @@
     "ora": "^9.4.0"
   },
   "devDependencies": {
-    "socket": "^1.1.105"
+    "socket": "^1.1.111"
   }
 }
