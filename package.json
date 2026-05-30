@@ -1,0 +1,43 @@
+{
+  "name": "scafkit-cli",
+  "version": "1.0.2",
+  "description": "Interactive CLI for generating starter projects.",
+  "main": "bin/scafkit-cli.js",
+  "type": "commonjs",
+  "bin": {
+    "scafkit": "bin/scafkit-cli.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "start": "node ./bin/scafkit-cli.js",
+    "check": "node --check bin/scafkit-cli.js && node --check src/generators/phpGenerator.js && node --check src/generators/pernGenerator.js && node --check src/generators/reactGenerator.js && node --check src/utils/fileSystem.js",
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:socket": "socket ci",
+    "security:socket:login": "socket login",
+    "security": "npm run security:audit",
+    "security:strict": "npm run security:audit && npm run security:socket",
+    "prepublishOnly": "npm run check && npm run security:audit"
+  },
+  "keywords": [
+    "cli",
+    "php",
+    "pern",
+    "react",
+    "typescript",
+    "starter",
+    "generator"
+  ],
+  "author": "Railey-Sawada",
+  "license": "MIT",
+  "dependencies": {
+    "ora": "^9.4.0"
+  },
+  "devDependencies": {
+    "socket": "^1.1.105"
+  }
+}
