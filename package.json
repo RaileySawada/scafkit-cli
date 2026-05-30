@@ -19,9 +19,9 @@
     "security:audit": "npm audit --audit-level=moderate",
     "security:socket": "socket ci",
     "security:socket:login": "socket login",
-    "security": "npm run security:audit",
+    "security": "npm run security:strict",
     "security:strict": "npm run security:audit && npm run security:socket",
-    "prepublishOnly": "npm run check && npm run security:audit"
+    "prepublishOnly": "npm run check && npm run security:strict"
   },
   "keywords": [
     "cli",
