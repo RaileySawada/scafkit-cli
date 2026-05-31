@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.0.6
+
+### CLI
+
+- Added persistent dev-server tracking so `status` and `stop` can still find Scafkit-started servers after reopening the CLI.
+- Added `--session` and `-s` for generated PHP controllers that should include `SessionService` wiring.
+
+### PHP
+
+- Simplified the PHP starter to two generated pages: login and forgot password.
+- Removed the generated reset password page, reset routes, reset controller, reset model, reset assets, and reset database table.
+- Added login-attempt protection with a 5-attempt, 15-minute cooldown per email and IP address.
+- Updated the generated login and forgot-password screens with a more polished, responsive app-style interface.
+
+### React and PERN
+
+- Updated generated React and PERN starter screens with a more production-style responsive UI and app-focused first screen.
+- Refined starter copy to feel less like a demo page and more like an application workspace.
+
+### Maintenance
+
+- Added package engine metadata, package-manager metadata, npm provenance publish config, production audit checks, and package dry-run checks.
+- Expanded release checks so publishing validates syntax, audit status, Socket policy, and package contents.
+
 ## 1.0.5
 
 ### PHP
