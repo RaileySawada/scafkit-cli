@@ -115,34 +115,49 @@ function createControllerMethod(actionName, viewPageName) {
     }`;
 }
 
-function createControllerTemplate(className, actions) {
+function createSessionControllerMembers() {
+  return String.raw`    private SessionService $sessionService;
+
+    public function __construct()
+    {
+        $this->sessionService = new SessionService();
+    }
+
+`;
+}
+
+function createControllerTemplate(className, actions, withSession = false) {
   const uniqueActions = Array.from(new Set(['index', ...actions.map(toPhpMethodName).filter(Boolean)]));
   const methods = uniqueActions
     .map((action) => createControllerMethod(action, toViewPageName(className, action)))
     .join('\n\n');
+  const sessionUse = withSession ? 'use App\\Services\\SessionService;\n\n' : '';
+  const sessionMembers = withSession ? createSessionControllerMembers() : '';
 
   return String.raw`<?php
 
 namespace App\Controllers;
 
-class ${className}
+${sessionUse}class ${className}
 {
-${methods}
+${sessionMembers}${methods}
 }
 `;
 }
 
-function createRouteControllerTemplate(className, actionName, viewPageName) {
+function createRouteControllerTemplate(className, actionName, viewPageName, withSession = false) {
   const action = toPhpMethodName(actionName) || 'index';
   const page = viewPageName || toViewPageName(className, action);
+  const sessionUse = withSession ? 'use App\\Services\\SessionService;\n\n' : '';
+  const sessionMembers = withSession ? createSessionControllerMembers() : '';
 
   return String.raw`<?php
 
 namespace App\Controllers;
 
-class ${className}
+${sessionUse}class ${className}
 {
-${createControllerMethod(action, page)}
+${sessionMembers}${createControllerMethod(action, page)}
 }
 `;
 }
@@ -164,9 +179,9 @@ function createViewTemplate(pageName) {
   return String.raw`<main class="scafkit-page">
     <section class="scafkit-hero">
         <div class="scafkit-hero__content">
-            <span class="scafkit-kicker">Scafkit PHP MVC</span>
+            <span class="scafkit-kicker">Application module</span>
             <h1>${title}</h1>
-            <p>Generated as a clean page module with routing, controller, model, and view conventions already in place.</p>
+            <p>A routed page module with controller, model, and view files already separated for production-oriented growth.</p>
         </div>
         <div class="scafkit-command">
             <span>route</span>
@@ -177,18 +192,18 @@ function createViewTemplate(pageName) {
     <section class="scafkit-grid" aria-label="Generated page details">
         <article class="scafkit-card">
             <span>01</span>
-            <h2>Controller Ready</h2>
-            <p>This page is rendered through its controller action, so business logic stays out of the view.</p>
+            <h2>Controller Boundary</h2>
+            <p>Request handling stays in the controller while the view focuses on presentation.</p>
         </article>
         <article class="scafkit-card">
             <span>02</span>
             <h2>Model Slot</h2>
-            <p>A paired model file is available for database work when this screen grows into a real feature.</p>
+            <p>A paired model file is ready for queries, persistence rules, and feature data.</p>
         </article>
         <article class="scafkit-card">
             <span>03</span>
             <h2>Responsive View</h2>
-            <p>The same Scafkit interface adapts across regular CSS, Bootstrap, and Tailwind starter modes.</p>
+            <p>The layout is structured for dashboards, forms, records, and repeatable app surfaces.</p>
         </article>
     </section>
 </main>
@@ -224,7 +239,7 @@ function addMethodToController(filePath, methodName, viewPageName, tracker) {
   return true;
 }
 
-function generatePhpController({ targetDir, name, actions = [], force = false }) {
+function generatePhpController({ targetDir, name, actions = [], force = false, session = false }) {
   if (!targetDir) {
     throw new Error('targetDir is required.');
   }
@@ -238,12 +253,13 @@ function generatePhpController({ targetDir, name, actions = [], force = false })
   const filePath = path.join(targetDir, 'app/Controllers', controller + '.php');
   const normalizedActions = Array.from(new Set(['index', ...actions.map(toPhpMethodName).filter(Boolean)]));
 
-  writeTextFile(filePath, createControllerTemplate(controller, normalizedActions), force, tracker);
+  writeTextFile(filePath, createControllerTemplate(controller, normalizedActions, session), force, tracker);
 
   return {
     ...tracker,
     controller,
-    actions: normalizedActions
+    actions: normalizedActions,
+    session
   };
 }
 
@@ -304,7 +320,7 @@ function ensureRouteUseStatement(content, controller) {
   return content.replace('<?php\n', `<?php\n\n${useLine}\n`);
 }
 
-function generatePhpRoute({ targetDir, routePath, handler, method = 'GET', force = false }) {
+function generatePhpRoute({ targetDir, routePath, handler, method = 'GET', force = false, session = false }) {
   if (!targetDir) {
     throw new Error('targetDir is required.');
   }
@@ -357,7 +373,7 @@ function generatePhpRoute({ targetDir, routePath, handler, method = 'GET', force
   } else {
     writeTextFile(
       controllerFile,
-      createRouteControllerTemplate(parsedHandler.controller, parsedHandler.action, viewPage),
+      createRouteControllerTemplate(parsedHandler.controller, parsedHandler.action, viewPage, session),
       false,
       tracker,
     );
@@ -390,7 +406,8 @@ function generatePhpRoute({ targetDir, routePath, handler, method = 'GET', force
     handler: `${parsedHandler.controller}@${parsedHandler.action}`,
     controller: parsedHandler.controller,
     model,
-    view: viewPage
+    view: viewPage,
+    session
   };
 }
 
@@ -439,7 +456,6 @@ function createRoutesTemplate() {
 
 use App\Controllers\ForgotPassword;
 use App\Controllers\LoginController;
-use App\Controllers\ResetPasswordController;
 use App\Controllers\SessionController;
 use App\Core\Router;
 
@@ -448,9 +464,7 @@ use App\Core\Router;
 $router->get('/', [LoginController::class, 'index']);
 $router->post('/login', [LoginController::class, 'authenticate']);
 $router->get('/forgot-password', [ForgotPassword::class, 'index']);
-$router->post('/forgot-password', [ForgotPassword::class, 'sendResetLink']);
-$router->get('/reset', [ResetPasswordController::class, 'index']);
-$router->post('/reset', [ResetPasswordController::class, 'update']);
+$router->post('/forgot-password', [ForgotPassword::class, 'sendRecoveryInstructions']);
 $router->post('/logout', [SessionController::class, 'destroy']);
 
 return $router;
@@ -635,6 +649,7 @@ class LoginController
     {
         $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
         $password = $_POST['password'] ?? '';
+        $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
         if (!$email || $password === '') {
             $this->sessionService->flash('error', 'Email and password are required.');
@@ -642,12 +657,21 @@ class LoginController
         }
 
         $loginModel = new LoginModel();
+
+        if ($loginModel->tooManyAttempts($email, $ipAddress)) {
+            $this->sessionService->flash('error', 'Too many login attempts. Please try again in 15 minutes.');
+            $this->redirect('/');
+        }
+
         $user = $loginModel->findByEmail($email);
 
         if (!$user || !password_verify($password, $user['password'])) {
+            $loginModel->recordFailedAttempt($email, $ipAddress);
             $this->sessionService->flash('error', 'Invalid login credentials.');
             $this->redirect('/');
         }
+
+        $loginModel->clearAttempts($email, $ipAddress);
 
         $this->sessionService->login([
             'id' => $user['id'],
@@ -687,7 +711,7 @@ class ForgotPassword
         \App\Core\View::render('ForgotPassword', 'Forgot Password');
     }
 
-    public function sendResetLink(): void
+    public function sendRecoveryInstructions(): void
     {
         $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
 
@@ -696,70 +720,15 @@ class ForgotPassword
             $this->redirect('/forgot-password');
         }
 
-        $token = bin2hex(random_bytes(32));
         $forgotPasswordModel = new ForgotPasswordModel();
-        $saved = $forgotPasswordModel->storeResetToken($email, $token);
+        $exists = $forgotPasswordModel->emailExists($email);
 
-        if (!$saved) {
-            $this->sessionService->flash('error', 'Email address was not found.');
-            $this->redirect('/forgot-password');
+        if ($exists) {
+            // Recovery delivery can be connected to your mail provider here.
         }
 
-        $resetUrl = BASE_URL . '/reset?token=' . urlencode($token);
-        $this->sessionService->flash('success', 'Reset link generated: ' . $resetUrl);
+        $this->sessionService->flash('success', 'If the account exists, recovery instructions will be sent.');
         $this->redirect('/forgot-password');
-    }
-
-    private function redirect(string $path): void
-    {
-        header('Location: ' . BASE_URL . $path);
-        exit;
-    }
-}
-`,
-
-    'app/Controllers/ResetPasswordController.php': String.raw`<?php
-
-namespace App\Controllers;
-
-use App\Models\ResetPasswordModel;
-use App\Services\SessionService;
-
-class ResetPasswordController
-{
-    private SessionService $sessionService;
-
-    public function __construct()
-    {
-        $this->sessionService = new SessionService();
-    }
-
-    public function index(): void
-    {
-        \App\Core\View::render('Reset', 'Reset Password');
-    }
-
-    public function update(): void
-    {
-        $token = $_POST['token'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $confirmPassword = $_POST['confirm_password'] ?? '';
-
-        if ($token === '' || $password === '' || $password !== $confirmPassword) {
-            $this->sessionService->flash('error', 'Passwords must match.');
-            $this->redirect('/reset?token=' . urlencode($token));
-        }
-
-        $resetPasswordModel = new ResetPasswordModel();
-        $updated = $resetPasswordModel->resetPassword($token, password_hash($password, PASSWORD_DEFAULT));
-
-        if (!$updated) {
-            $this->sessionService->flash('error', 'Invalid or expired reset token.');
-            $this->redirect('/reset?token=' . urlencode($token));
-        }
-
-        $this->sessionService->flash('success', 'Password updated. You may now sign in.');
-        $this->redirect('/');
     }
 
     private function redirect(string $path): void
@@ -842,6 +811,45 @@ class LoginModel extends DatabaseModel
         $user = $statement->fetch();
         return $user ?: null;
     }
+
+    public function tooManyAttempts(string $email, string $ipAddress): bool
+    {
+        $statement = $this->connection->prepare(
+            'SELECT COUNT(*) AS attempts
+             FROM login_attempts
+             WHERE email = :email
+               AND ip_address = :ip_address
+               AND attempted_at >= DATE_SUB(NOW(), INTERVAL 15 MINUTE)'
+        );
+        $statement->execute([
+            'email' => $email,
+            'ip_address' => $ipAddress,
+        ]);
+
+        return (int) ($statement->fetch()['attempts'] ?? 0) >= 5;
+    }
+
+    public function recordFailedAttempt(string $email, string $ipAddress): void
+    {
+        $statement = $this->connection->prepare(
+            'INSERT INTO login_attempts (email, ip_address) VALUES (:email, :ip_address)'
+        );
+        $statement->execute([
+            'email' => $email,
+            'ip_address' => $ipAddress,
+        ]);
+    }
+
+    public function clearAttempts(string $email, string $ipAddress): void
+    {
+        $statement = $this->connection->prepare(
+            'DELETE FROM login_attempts WHERE email = :email AND ip_address = :ip_address'
+        );
+        $statement->execute([
+            'email' => $email,
+            'ip_address' => $ipAddress,
+        ]);
+    }
 }
 `,
 
@@ -851,63 +859,11 @@ namespace App\Models;
 
 class ForgotPasswordModel extends DatabaseModel
 {
-    public function storeResetToken(string $email, string $token): bool
+    public function emailExists(string $email): bool
     {
         $userStatement = $this->connection->prepare('SELECT id FROM users WHERE email = :email LIMIT 1');
         $userStatement->execute(['email' => $email]);
-        $user = $userStatement->fetch();
-
-        if (!$user) {
-            return false;
-        }
-
-        $deleteStatement = $this->connection->prepare('DELETE FROM password_resets WHERE user_id = :user_id');
-        $deleteStatement->execute(['user_id' => $user['id']]);
-
-        $insertStatement = $this->connection->prepare(
-            'INSERT INTO password_resets (user_id, token, expires_at) VALUES (:user_id, :token, DATE_ADD(NOW(), INTERVAL 30 MINUTE))'
-        );
-
-        return $insertStatement->execute([
-            'user_id' => $user['id'],
-            'token' => hash('sha256', $token),
-        ]);
-    }
-}
-`,
-
-    'app/Models/ResetPasswordModel.php': String.raw`<?php
-
-namespace App\Models;
-
-class ResetPasswordModel extends DatabaseModel
-{
-    public function resetPassword(string $token, string $hashedPassword): bool
-    {
-        $tokenHash = hash('sha256', $token);
-
-        $statement = $this->connection->prepare(
-            'SELECT user_id FROM password_resets WHERE token = :token AND expires_at > NOW() LIMIT 1'
-        );
-        $statement->execute(['token' => $tokenHash]);
-        $resetRecord = $statement->fetch();
-
-        if (!$resetRecord) {
-            return false;
-        }
-
-        $updateStatement = $this->connection->prepare('UPDATE users SET password = :password WHERE id = :user_id');
-        $updated = $updateStatement->execute([
-            'password' => $hashedPassword,
-            'user_id' => $resetRecord['user_id'],
-        ]);
-
-        if ($updated) {
-            $deleteStatement = $this->connection->prepare('DELETE FROM password_resets WHERE user_id = :user_id');
-            $deleteStatement->execute(['user_id' => $resetRecord['user_id']]);
-        }
-
-        return $updated;
+        return (bool) $userStatement->fetch();
     }
 }
 `,
@@ -1018,20 +974,20 @@ $success = $sessionService->getFlash('success');
 
     'app/Views/Pages/Login.php': String.raw`<main class="auth-page">
     <section class="auth-intro">
-        <span class="scafkit-kicker">Scafkit PHP MVC</span>
-        <h1>Ship a clean PHP auth flow without wrestling the folder structure.</h1>
-        <p>Controllers, models, routes, views, sessions, and database defaults are already arranged so you can start building the real product.</p>
-        <div class="scafkit-metrics" aria-label="Starter highlights">
-            <span><strong>MVC</strong> structure</span>
-            <span><strong>XAMPP</strong> ready</span>
-            <span><strong>Routes</strong> editable</span>
+        <span class="scafkit-kicker">Production PHP MVC</span>
+        <h1>Secure access for a clean application workspace.</h1>
+        <p>Scafkit ships authentication, sessions, database models, and guarded login attempts in a structure that is ready to harden further.</p>
+        <div class="scafkit-metrics" aria-label="Application readiness">
+            <span><strong>Sessions</strong> HTTP-only cookies</span>
+            <span><strong>Database</strong> PDO prepared queries</span>
+            <span><strong>Defense</strong> login attempt limits</span>
         </div>
     </section>
 
     <section class="auth-card">
         <span class="scafkit-kicker">Secure entry</span>
-        <h2>Welcome back</h2>
-        <p>Sign in to continue to your Scafkit workspace.</p>
+        <h2>Sign in</h2>
+        <p>Use your account credentials to open the dashboard.</p>
 
         <form method="POST" action="<?= BASE_URL ?>/login" class="auth-form">
             <label>
@@ -1044,10 +1000,13 @@ $success = $sessionService->getFlash('success');
                 <input type="password" name="password" autocomplete="current-password" required>
             </label>
 
-            <button type="submit">Login to starter</button>
+            <button type="submit">Sign in</button>
         </form>
 
-        <a href="<?= BASE_URL ?>/forgot-password">Forgot password?</a>
+        <div class="auth-actions">
+            <a href="<?= BASE_URL ?>/forgot-password">Forgot password?</a>
+            <span>5 failed attempts trigger a 15 minute cooldown.</span>
+        </div>
     </section>
 </main>
 `,
@@ -1055,8 +1014,8 @@ $success = $sessionService->getFlash('success');
     'app/Views/Pages/ForgotPassword.php': String.raw`<main class="auth-page auth-page--compact">
     <section class="auth-card">
         <span class="scafkit-kicker">Account recovery</span>
-        <h1>Reset access with a clean PHP flow.</h1>
-        <p>Generate a reset link using the starter's model, controller, session flash, and route conventions.</p>
+        <h1>Recover access without exposing account details.</h1>
+        <p>Collect the account email and connect your preferred recovery delivery flow behind this focused screen.</p>
 
         <form method="POST" action="<?= BASE_URL ?>/forgot-password" class="auth-form">
             <label>
@@ -1064,35 +1023,10 @@ $success = $sessionService->getFlash('success');
                 <input type="email" name="email" autocomplete="email" required>
             </label>
 
-            <button type="submit">Generate reset link</button>
+            <button type="submit">Send recovery instructions</button>
         </form>
 
         <a href="<?= BASE_URL ?>/">Back to login</a>
-    </section>
-</main>
-`,
-
-    'app/Views/Pages/Reset.php': String.raw`<main class="auth-page auth-page--compact">
-    <section class="auth-card">
-        <span class="scafkit-kicker">Password reset</span>
-        <h1>Create a new password.</h1>
-        <p>Finish the reset flow with a focused generated screen that keeps form logic in the controller.</p>
-
-        <form method="POST" action="<?= BASE_URL ?>/reset" class="auth-form">
-            <input type="hidden" name="token" value="<?= htmlspecialchars($_GET['token'] ?? '') ?>">
-
-            <label>
-                New password
-                <input type="password" name="password" autocomplete="new-password" required>
-            </label>
-
-            <label>
-                Confirm password
-                <input type="password" name="confirm_password" autocomplete="new-password" required>
-            </label>
-
-            <button type="submit">Update password</button>
-        </form>
     </section>
 </main>
 `,
@@ -1255,18 +1189,19 @@ RewriteRule (.*) public/$1 [L]
 
     'public/css/login.css': String.raw`:root {
     color-scheme: dark;
-    --bg: #07111f;
-    --surface: #0e1a2d;
-    --surface-strong: #12233b;
-    --card: rgba(12, 28, 48, 0.92);
-    --text: #eff6ff;
-    --muted: #a8bed8;
-    --line: rgba(125, 211, 252, 0.22);
-    --cyan: #22d3ee;
-    --blue: #38bdf8;
-    --gold: #facc15;
-    --error: #ef4444;
-    --success: #22c55e;
+    --bg: #101114;
+    --surface: #17191f;
+    --surface-strong: #222631;
+    --card: rgba(24, 26, 32, 0.94);
+    --text: #f8fafc;
+    --muted: #b6bfcc;
+    --line: rgba(226, 232, 240, 0.16);
+    --cyan: #2dd4bf;
+    --blue: #60a5fa;
+    --gold: #f5c451;
+    --plum: #c084fc;
+    --error: #f43f5e;
+    --success: #10b981;
 }
 
 * {
@@ -1278,9 +1213,9 @@ body {
     min-height: 100vh;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background:
-        radial-gradient(circle at top left, rgba(34, 211, 238, 0.22), transparent 32rem),
-        radial-gradient(circle at bottom right, rgba(250, 204, 21, 0.12), transparent 28rem),
-        linear-gradient(135deg, #07111f 0%, #0c1727 54%, #08111f 100%);
+        linear-gradient(120deg, rgba(45, 212, 191, 0.16), transparent 34rem),
+        linear-gradient(300deg, rgba(192, 132, 252, 0.15), transparent 30rem),
+        linear-gradient(135deg, #101114 0%, #17191f 48%, #1d1a24 100%);
     color: var(--text);
 }
 
@@ -1328,7 +1263,7 @@ a {
     place-items: center;
     border: 1px solid var(--line);
     border-radius: 8px;
-    background: linear-gradient(135deg, rgba(34, 211, 238, 0.18), rgba(250, 204, 21, 0.16));
+    background: linear-gradient(135deg, rgba(45, 212, 191, 0.18), rgba(245, 196, 81, 0.16));
     color: var(--gold);
 }
 
@@ -1351,7 +1286,7 @@ a {
     border: 1px solid var(--line);
     border-radius: 999px;
     padding: 0.35rem 0.7rem;
-    background: rgba(34, 211, 238, 0.1);
+    background: rgba(45, 212, 191, 0.1);
     color: var(--gold);
     font-size: 0.74rem;
     font-weight: 900;
@@ -1385,7 +1320,7 @@ a {
     border: 1px solid var(--line);
     border-radius: 8px;
     background: var(--card);
-    box-shadow: 0 24px 90px rgba(0, 0, 0, 0.34);
+    box-shadow: 0 24px 90px rgba(0, 0, 0, 0.28);
 }
 
 .auth-intro,
@@ -1476,6 +1411,17 @@ a {
 
 .auth-form button:hover {
     filter: brightness(1.05);
+}
+
+.auth-actions {
+    display: grid;
+    gap: 0.45rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.auth-actions span {
+    color: #d6dde8;
 }
 
 .scafkit-hero {
@@ -1606,9 +1552,6 @@ body[data-css-framework="tailwind"] .auth-form button {
     'public/css/forgot_password.css': String.raw`@import url('./login.css');
 `,
 
-    'public/css/reset.css': String.raw`@import url('./login.css');
-`,
-
     'public/js/login.js': String.raw`document.addEventListener('DOMContentLoaded', () => {
     const forms = document.querySelectorAll('form');
 
@@ -1626,12 +1569,12 @@ body[data-css-framework="tailwind"] .auth-form button {
 `,
 
     'public/js/forgot_password.js': String.raw`document.addEventListener('DOMContentLoaded', () => {
-    console.log('Forgot password page loaded.');
-});
-`,
+    const form = document.querySelector('.auth-form');
+    const email = form?.querySelector('input[type="email"]');
 
-    'public/js/reset.js': String.raw`document.addEventListener('DOMContentLoaded', () => {
-    console.log('Reset password page loaded.');
+    if (email) {
+        email.focus();
+    }
 });
 `,
 
@@ -1673,15 +1616,12 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS password_resets (
+CREATE TABLE IF NOT EXISTS login_attempts (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT UNSIGNED NOT NULL,
-    token VARCHAR(64) NOT NULL UNIQUE,
-    expires_at DATETIME NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT password_resets_user_id_foreign
-        FOREIGN KEY (user_id) REFERENCES users(id)
-        ON DELETE CASCADE
+    email VARCHAR(180) NOT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX login_attempts_email_ip_time_index (email, ip_address, attempted_at)
 );
 
 INSERT INTO users (name, email, password)

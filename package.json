@@ -1,9 +1,13 @@
 {
   "name": "scafkit-cli",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Interactive CLI for generating starter projects.",
   "main": "bin/scafkit-cli.js",
   "type": "commonjs",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "packageManager": "npm@11.13.0",
   "bin": {
     "scafkit": "bin/scafkit-cli.js"
   },
@@ -16,12 +20,19 @@
   "scripts": {
     "start": "node ./bin/scafkit-cli.js",
     "check": "node --check bin/scafkit-cli.js && node --check src/generators/phpGenerator.js && node --check src/generators/pernGenerator.js && node --check src/generators/reactGenerator.js && node --check src/utils/fileSystem.js",
+    "pack:dry-run": "npm pack --dry-run",
     "security:audit": "npm audit --audit-level=moderate",
+    "security:prod": "npm audit --omit=dev --audit-level=moderate",
     "security:socket": "socket ci",
     "security:socket:login": "socket login",
     "security": "npm run security:strict",
-    "security:strict": "npm run security:audit && npm run security:socket",
-    "prepublishOnly": "npm run check && npm run security:strict"
+    "security:strict": "npm run security:audit && npm run security:prod && npm run security:socket",
+    "maintenance": "npm run check && npm run security:audit && npm run pack:dry-run",
+    "prepublishOnly": "npm run check && npm run security:strict && npm run pack:dry-run"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "keywords": [
     "cli",

@@ -63,13 +63,13 @@ function createReactPackageJson(packageName, serverless, tailwind, language = 't
 }
 
 function createAppTsx(serverless, tailwind) {
-  const shellClass = tailwind ? 'app-shell min-h-screen bg-[#07111f] text-slate-50' : 'app-shell';
-  const layoutClass = tailwind ? 'mx-auto grid min-h-screen w-[min(1180px,calc(100vw-2rem))] content-center gap-4 py-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]' : 'app-grid';
-  const heroClass = tailwind ? 'rounded-lg border border-cyan-300/20 bg-slate-900/90 p-6 shadow-2xl shadow-black/30 sm:p-10' : 'hero-panel';
-  const asideClass = tailwind ? 'rounded-lg border border-cyan-300/20 bg-slate-900/85 p-6 shadow-2xl shadow-black/25' : 'side-panel';
-  const buttonClass = tailwind ? 'inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-300 px-4 py-3 font-black text-slate-950 transition hover:bg-sky-300 disabled:cursor-wait disabled:opacity-70' : 'primary-button';
-  const preClass = tailwind ? 'mt-5 min-h-28 overflow-auto rounded-lg border border-cyan-300/20 bg-slate-950/80 p-4 text-sm text-cyan-100' : 'response-box';
-  const kickerClass = tailwind ? 'mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase text-yellow-300' : 'eyebrow';
+  const shellClass = tailwind ? 'app-shell min-h-screen bg-[#101114] text-slate-50' : 'app-shell';
+  const layoutClass = tailwind ? 'mx-auto grid min-h-screen w-[min(1180px,calc(100vw-2rem))] content-center gap-4 py-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]' : 'app-grid';
+  const heroClass = tailwind ? 'rounded-lg border border-slate-200/15 bg-[#181a20]/95 p-6 shadow-2xl shadow-black/25 sm:p-10' : 'hero-panel';
+  const asideClass = tailwind ? 'rounded-lg border border-slate-200/15 bg-[#1f232b]/90 p-6 shadow-2xl shadow-black/20' : 'side-panel';
+  const buttonClass = tailwind ? 'inline-flex items-center justify-center gap-2 rounded-lg bg-teal-300 px-4 py-3 font-black text-slate-950 transition hover:bg-amber-200 disabled:cursor-wait disabled:opacity-70' : 'primary-button';
+  const preClass = tailwind ? 'mt-5 min-h-28 overflow-auto rounded-lg border border-slate-200/15 bg-[#111318]/90 p-4 text-sm text-teal-100' : 'response-box';
+  const kickerClass = tailwind ? 'mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-slate-200/15 bg-teal-300/10 px-3 py-1 text-xs font-black uppercase text-amber-200' : 'eyebrow';
   const statGridClass = tailwind ? 'mt-6 grid gap-3 sm:grid-cols-3' : 'stat-grid';
   const statClass = tailwind ? 'rounded-lg border border-cyan-300/20 bg-slate-950/60 p-3 text-sm text-slate-300' : 'stat-card';
   const featureGridClass = tailwind ? 'mt-4 grid gap-3 sm:grid-cols-3' : 'feature-grid';
@@ -117,9 +117,9 @@ export default function App() {
             <Sparkles size={18} />
             Scafkit React Serverless
           </div>
-          <h1>Launch a polished React app with serverless endpoints already wired.</h1>
+          <h1>Operate a polished React workspace with serverless actions ready.</h1>
           <p>
-            Scafkit gives the starter a production-minded shape: app shell, service layer, API helpers, typed contracts, and deploy-ready functions in one responsive interface.
+            A production-minded app shell, service layer, API helper, typed contract, and deploy-ready function are arranged in one focused workspace.
           </p>
           <div className="${statGridClass}">
             <span className="${statClass}"><strong>Vite</strong> fast dev loop</span>
@@ -177,9 +177,9 @@ export default function App() {
             <Boxes size={18} />
             Scafkit React TypeScript
           </div>
-          <h1>A modern React starter that already looks like a Scafkit product.</h1>
+          <h1>A modern React control surface with clean application layers.</h1>
           <p>
-            A responsive landing surface, service-ready architecture, and clear ownership zones give you a confident first screen before the real product takes over.
+            A responsive app surface, service-ready architecture, and clear ownership zones give your product a practical first screen from day one.
           </p>
           <div className="${statGridClass}">
             <span className="${statClass}"><strong>React</strong> app shell</span>
@@ -230,7 +230,7 @@ function createStyles(tailwind) {
   body {
     margin: 0;
     min-width: 320px;
-    background: #07111f;
+    background: #101114;
   }
 
   h1 {
@@ -256,9 +256,9 @@ function createStyles(tailwind) {
 @layer components {
   .app-shell {
     background:
-      radial-gradient(circle at top left, rgba(34, 211, 238, 0.22), transparent 32rem),
-      radial-gradient(circle at bottom right, rgba(250, 204, 21, 0.12), transparent 28rem),
-      linear-gradient(135deg, #07111f 0%, #0c1727 54%, #08111f 100%);
+      linear-gradient(120deg, rgba(45, 212, 191, 0.16), transparent 34rem),
+      linear-gradient(300deg, rgba(192, 132, 252, 0.15), transparent 30rem),
+      linear-gradient(135deg, #101114 0%, #17191f 48%, #1d1a24 100%);
   }
 }
 `;
@@ -266,13 +266,14 @@ function createStyles(tailwind) {
 
   return String.raw`:root {
   color: #eff6ff;
-  background: #07111f;
+  background: #101114;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --line: rgba(125, 211, 252, 0.22);
-  --muted: #a8bed8;
-  --cyan: #22d3ee;
-  --blue: #38bdf8;
-  --gold: #facc15;
+  --line: rgba(226, 232, 240, 0.16);
+  --muted: #b6bfcc;
+  --cyan: #2dd4bf;
+  --blue: #60a5fa;
+  --gold: #f5c451;
+  --plum: #c084fc;
 }
 
 * {
@@ -292,9 +293,9 @@ button {
 .app-shell {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(34, 211, 238, 0.22), transparent 32rem),
-    radial-gradient(circle at bottom right, rgba(250, 204, 21, 0.12), transparent 28rem),
-    linear-gradient(135deg, #07111f 0%, #0c1727 54%, #08111f 100%);
+    linear-gradient(120deg, rgba(45, 212, 191, 0.16), transparent 34rem),
+    linear-gradient(300deg, rgba(192, 132, 252, 0.15), transparent 30rem),
+    linear-gradient(135deg, #101114 0%, #17191f 48%, #1d1a24 100%);
   color: #eff6ff;
 }
 

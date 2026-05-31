@@ -221,6 +221,7 @@ const HELP_TOPICS = {
         ["make:controller", "Create a controller in the current PHP starter"],
         ["make:route", "Append a route and scaffold missing MVC files"],
         ["methodName", "Add one or more methods to the controller"],
+        ["--session, -s", "Add SessionService wiring to generated controllers"],
         ["--tw", "Include Tailwind CSS through the generated layout"],
         ["--bs", "Include Bootstrap through the generated layout"],
         ["--dir <path>", "Create the target folder inside another directory"],
@@ -240,7 +241,7 @@ const HELP_TOPICS = {
         "cd php-auth-app",
         "cp .env.example .env",
         "scafkit run php",
-        "scafkit make:controller Invoice approve reject",
+        "scafkit make:controller Invoice approve reject --session",
         "scafkit make:route GET /invoices InvoiceController@index",
       ]),
     );
@@ -1455,6 +1456,7 @@ async function handleMakeController(args) {
   }
 
   const force = args.includes("--force") || args.includes("-f");
+  const session = args.includes("--session") || args.includes("-s");
   const positionals = args.filter((arg) => !arg.startsWith("-"));
   const controllerName = positionals[0];
   const actions = positionals.slice(1);
@@ -1475,6 +1477,7 @@ async function handleMakeController(args) {
           name: controllerName,
           actions,
           force,
+          session,
         }),
       ),
     );
@@ -1483,6 +1486,7 @@ async function handleMakeController(args) {
       ["Files", `${result.created.length} created`],
       ["Controller", result.controller],
       ["Actions", result.actions.join(", ")],
+      ["Session", result.session ? "enabled" : "disabled"],
     ]);
     printSkipped(result.skipped);
   } catch (err) {
@@ -1497,13 +1501,14 @@ async function handleMakeRoute(args) {
   }
 
   const force = args.includes("--force") || args.includes("-f");
+  const session = args.includes("--session") || args.includes("-s");
   let method = "GET";
   const positionals = [];
 
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
 
-    if (arg === "--force" || arg === "-f") {
+    if (arg === "--force" || arg === "-f" || arg === "--session" || arg === "-s") {
       continue;
     }
 
@@ -1547,6 +1552,7 @@ async function handleMakeRoute(args) {
           handler,
           method,
           force,
+          session,
         }),
       ),
     );
@@ -1556,6 +1562,7 @@ async function handleMakeRoute(args) {
       ["Route", `${result.method} ${result.route}`],
       ["Handler", result.handler],
       ["Controller", result.controller],
+      ["Session", result.session ? "enabled" : "disabled"],
       ["Model", result.model],
       ["View", result.view],
     ]);
@@ -1609,6 +1616,7 @@ function printError(title, message) {
 
 const managedServers = new Map();
 let managedServerCounter = 0;
+const serverStatePath = path.join(os.homedir(), ".scafkit", "servers.json");
 
 function getNpmRunCommand(scriptName) {
   if (process.platform === "win32") {
@@ -1629,10 +1637,129 @@ function createServerId(kind) {
   return `${kind}-${managedServerCounter}`;
 }
 
+function isProcessRunning(pid) {
+  if (!pid) return false;
+
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function getServerStatusPort(server) {
+  if (server.statusPort) {
+    return server.statusPort;
+  }
+
+  try {
+    const parsed = new URL(server.url);
+    if (parsed.port) {
+      return Number(parsed.port);
+    }
+
+    return parsed.protocol === "https:" ? 443 : 80;
+  } catch {
+    return null;
+  }
+}
+
+function createPersistedStatusCheck(server) {
+  const port = getServerStatusPort(server);
+  return port ? () => canConnectWithRetry(port, 3, 250) : null;
+}
+
+function serializeServer(server) {
+  return {
+    id: server.id,
+    kind: server.kind,
+    label: server.label,
+    url: server.url,
+    cwd: server.cwd,
+    command: server.command,
+    args: server.args,
+    commandText: server.commandText,
+    pid: server.pid || server.child?.pid || null,
+    external: Boolean(server.external),
+    statusPort: getServerStatusPort(server),
+    startedAt: server.startedAt || new Date().toISOString(),
+  };
+}
+
+function saveServerState() {
+  try {
+    ensureDirectory(path.dirname(serverStatePath));
+    const servers = Array.from(managedServers.values())
+      .filter((server) => server.external || isProcessRunning(server.pid || server.child?.pid))
+      .map(serializeServer);
+
+    fs.writeFileSync(
+      serverStatePath,
+      JSON.stringify({ version: 1, servers }, null, 2),
+      "utf8",
+    );
+  } catch {
+    // Server tracking should never block the primary CLI command.
+  }
+}
+
+function restoreServerState() {
+  if (!fs.existsSync(serverStatePath)) {
+    return;
+  }
+
+  try {
+    const state = JSON.parse(fs.readFileSync(serverStatePath, "utf8"));
+    const servers = Array.isArray(state.servers) ? state.servers : [];
+
+    for (const saved of servers) {
+      if (!saved?.id || managedServers.has(saved.id)) {
+        continue;
+      }
+
+      const suffix = Number(String(saved.id).split("-").pop());
+      if (Number.isFinite(suffix)) {
+        managedServerCounter = Math.max(managedServerCounter, suffix);
+      }
+
+      const server = {
+        id: saved.id,
+        kind: saved.kind,
+        label: saved.label,
+        url: saved.url,
+        cwd: saved.cwd,
+        command: saved.command,
+        args: Array.isArray(saved.args) ? saved.args : [],
+        commandText: saved.commandText,
+        child: null,
+        pid: saved.pid || null,
+        exited: saved.external ? false : !isProcessRunning(saved.pid),
+        exitCode: null,
+        lastError: "",
+        external: Boolean(saved.external),
+        statusPort: saved.statusPort || null,
+        startedAt: saved.startedAt || null,
+        checkStatus: createPersistedStatusCheck(saved),
+      };
+
+      managedServers.set(server.id, server);
+    }
+  } catch {
+    managedServers.clear();
+  }
+}
+
 function isManagedServerActive(server) {
-  return Boolean(
-    server.child && server.child.exitCode === null && !server.exited,
-  );
+  if (!server || server.external) {
+    return false;
+  }
+
+  if (server.child) {
+    return Boolean(server.child.exitCode === null && !server.exited);
+  }
+
+  return isProcessRunning(server.pid);
 }
 
 function startManagedServer(config) {
@@ -1650,13 +1777,15 @@ function startManagedServer(config) {
   const id = createServerId(config.kind);
   const child = spawn(config.command, config.args, {
     cwd: config.cwd,
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: "ignore",
     shell: false,
+    detached: true,
     env: {
       ...process.env,
       BROWSER: "none",
     },
   });
+  child.unref();
 
   const server = {
     id,
@@ -1664,36 +1793,34 @@ function startManagedServer(config) {
     label: config.label,
     url: config.url,
     cwd: config.cwd,
+    command: config.command,
+    args: config.args,
     commandText: config.commandText,
     child,
+    pid: child.pid,
     exited: false,
     exitCode: null,
     lastError: "",
     external: false,
+    statusPort: getServerStatusPort(config),
+    startedAt: new Date().toISOString(),
     checkStatus: config.checkStatus,
   };
-
-  child.stdout?.on("data", (chunk) => {
-    const text = chunk.toString().trim();
-    if (text) server.lastOutput = text.split(/\r?\n/).slice(-1)[0];
-  });
-
-  child.stderr?.on("data", (chunk) => {
-    const text = chunk.toString().trim();
-    if (text) server.lastError = text.split(/\r?\n/).slice(-1)[0];
-  });
 
   child.on("error", (error) => {
     server.exited = true;
     server.lastError = error.message;
+    saveServerState();
   });
 
   child.on("exit", (code) => {
     server.exited = true;
     server.exitCode = code;
+    saveServerState();
   });
 
   managedServers.set(id, server);
+  saveServerState();
   return server;
 }
 
@@ -1705,6 +1832,9 @@ function createExternalServer(config) {
   if (existing) {
     existing.url = config.url;
     existing.checkStatus = config.checkStatus;
+    existing.statusPort = getServerStatusPort(config);
+    existing.commandText = config.commandText;
+    saveServerState();
     return existing;
   }
 
@@ -1721,34 +1851,57 @@ function createExternalServer(config) {
     exitCode: null,
     lastError: "",
     external: true,
+    statusPort: getServerStatusPort(config),
+    startedAt: new Date().toISOString(),
     checkStatus: config.checkStatus,
   };
 
   managedServers.set(id, server);
+  saveServerState();
   return server;
 }
 
 function stopManagedServer(server) {
   if (!server || server.external) return false;
   if (!isManagedServerActive(server)) return false;
+  const pid = server.child?.pid || server.pid;
 
   if (process.platform === "win32") {
-    spawnSync("taskkill", ["/pid", String(server.child.pid), "/T", "/F"], {
+    spawnSync("taskkill", ["/pid", String(pid), "/T", "/F"], {
       stdio: "ignore",
       shell: false,
     });
+  } else if (server.child) {
+    try {
+      process.kill(-pid, "SIGTERM");
+    } catch {
+      server.child.kill("SIGTERM");
+    }
   } else {
-    server.child.kill("SIGTERM");
+    try {
+      process.kill(-pid, "SIGTERM");
+    } catch {
+      try {
+        process.kill(pid, "SIGTERM");
+      } catch {
+        return false;
+      }
+    }
   }
 
   server.exited = true;
+  server.pid = null;
+  saveServerState();
   return true;
 }
 
 function stopAllManagedServers() {
   for (const server of managedServers.values()) {
-    stopManagedServer(server);
+    if (stopManagedServer(server)) {
+      managedServers.delete(server.id);
+    }
   }
+  saveServerState();
 }
 
 function canConnectHost(port, host, timeout = 350) {
@@ -1875,8 +2028,12 @@ function handleStop(args) {
 
   let stopped = 0;
   for (const server of servers) {
-    if (stopManagedServer(server)) stopped += 1;
+    if (stopManagedServer(server)) {
+      managedServers.delete(server.id);
+      stopped += 1;
+    }
   }
+  saveServerState();
 
   console.log(
     `\n  ${A}${ICON.arrow}${c.reset} ${stopped} server(s) stopped. External servers like XAMPP must be stopped in their own app.\n`,
@@ -2811,6 +2968,7 @@ async function handleCommand(line, rl) {
 
 async function startCli() {
   enableUtf8Console();
+  restoreServerState();
   process.once("SIGINT", () => {
     stopAllManagedServers();
     process.exit(0);
