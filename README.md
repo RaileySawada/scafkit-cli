@@ -1,5 +1,7 @@
 # Scafkit CLI
 
+[![Socket Badge](https://badge.socket.dev/npm/package/scafkit-cli/1.0.7)](https://badge.socket.dev/npm/package/scafkit-cli/1.0.7)
+
 Scafkit is an interactive scaffolding CLI for creating PHP MVC, PERN, and React starter projects without rebuilding the same folder structure, scripts, and setup files by hand.
 
 It is built for quick project starts: choose a template, pick TypeScript or JavaScript when needed, optionally include Tailwind or serverless functions, and let Scafkit generate the app with sensible defaults.

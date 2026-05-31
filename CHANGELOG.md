@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.7
+
+### Maintenance
+
+- Pinned direct dependency versions for repeatable installs.
+- Kept local publishing compatible by using public package access without local-only provenance enforcement.
+
 ## 1.0.6
 
 ### CLI
@@ -21,8 +28,8 @@
 
 ### Maintenance
 
-- Added package engine metadata, package-manager metadata, npm provenance publish config, production audit checks, and package dry-run checks.
-- Expanded release checks so publishing validates syntax, audit status, Socket policy, and package contents.
+- Added package engine metadata, package-manager metadata, production audit checks, and package dry-run checks.
+- Expanded release checks so publishing validates syntax, audit status, and package contents.
 
 ## 1.0.5
 

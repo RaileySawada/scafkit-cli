@@ -723,13 +723,23 @@ async function loadOra() {
 
 function createFallbackSpinner(text) {
   return {
+    color: "cyan",
+    text,
     start() {
       process.stdout.write(
-        `  ${A}${ICON.work}${c.reset} ${c.white}${text}${c.reset}\n`,
+        `  ${A}${ICON.work}${c.reset} ${c.white}${this.text || text}${c.reset}\n`,
       );
     },
-    succeed() {},
-    fail() {},
+    succeed(message = text) {
+      process.stdout.write(
+        `  ${c.green}${ICON.selected}${c.reset} ${c.white}${message}${c.reset}\n`,
+      );
+    },
+    fail(message = text) {
+      process.stdout.write(
+        `  ${c.bRed}${ICON.fail}${c.reset} ${c.white}${message}${c.reset}\n`,
+      );
+    },
     stop() {},
   };
 }

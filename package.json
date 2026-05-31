@@ -1,6 +1,6 @@
 {
   "name": "scafkit-cli",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Interactive CLI for generating starter projects.",
   "main": "bin/scafkit-cli.js",
   "type": "commonjs",
@@ -31,8 +31,7 @@
     "prepublishOnly": "npm run check && npm run security:audit && npm run security:prod && npm run pack:dry-run"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "keywords": [
     "cli",
@@ -46,9 +45,9 @@
   "author": "Railey-Sawada",
   "license": "MIT",
   "dependencies": {
-    "ora": "^9.4.0"
+    "ora": "9.4.0"
   },
   "devDependencies": {
-    "socket": "^1.1.111"
+    "socket": "1.1.111"
   }
 }
