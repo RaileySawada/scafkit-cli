@@ -1,6 +1,6 @@
 # Scafkit CLI
 
-[![Socket Badge](https://badge.socket.dev/npm/package/scafkit-cli/1.0.7)](https://badge.socket.dev/npm/package/scafkit-cli/1.0.7)
+[![Socket Badge](https://badge.socket.dev/npm/package/scafkit-cli/1.0.8)](https://badge.socket.dev/npm/package/scafkit-cli/1.0.8)
 
 Scafkit is an interactive scaffolding CLI for creating PHP MVC, PERN, and React starter projects without rebuilding the same folder structure, scripts, and setup files by hand.
 
@@ -80,80 +80,80 @@ scafkit react my-app --pm bun
 
 ## Templates
 
-| Template | Command | Output |
-| --- | --- | --- |
-| React | `scafkit react my-app` | React app with scalable `src` layout, Vite scripts, optional Tailwind, and optional Netlify Functions |
-| PERN | `scafkit pern my-api` | React client plus Express server, PostgreSQL-ready defaults, optional Sequelize dialects, and copied server `.env` |
-| PHP MVC | `scafkit php my-auth-app` | PHP MVC authentication starter with controllers, models, editable routes, sessions, `.env.example`, and SQL schema |
+| Template | Command                   | Output                                                                                                            |
+| -------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| React    | `scafkit react my-app`    | React app with scalable`src` layout, Vite scripts, optional Tailwind, and optional Netlify Functions              |
+| PERN     | `scafkit pern my-api`     | React client plus Express server, PostgreSQL-ready defaults, optional Sequelize dialects, and copied server`.env` |
+| PHP MVC  | `scafkit php my-auth-app` | PHP MVC authentication starter with controllers, models, editable routes, sessions,`.env.example`, and SQL schema |
 
 ## Flags
 
 Common project flags:
 
-| Flag | Description |
-| --- | --- |
-| `--dir <path>` | Create the project inside another directory |
-| `--dry-run` | Preview generated files without writing them |
-| `--force`, `-f` | Overwrite existing generated files |
-| `--yes`, `-y` | Use defaults and install dependencies without prompting |
-| `--no-install` | Skip dependency installation |
-| `--pm <npm\|pnpm\|yarn\|bun>` | Choose the package manager for dependency installation |
-| `--help`, `-h` | Show command help |
+| Flag            | Description                                             |
+| --------------- | ------------------------------------------------------- | ---- | ----- | ------------------------------------------------------ |
+| `--dir <path>`  | Create the project inside another directory             |
+| `--dry-run`     | Preview generated files without writing them            |
+| `--force`, `-f` | Overwrite existing generated files                      |
+| `--yes`, `-y`   | Use defaults and install dependencies without prompting |
+| `--no-install`  | Skip dependency installation                            |
+| `--pm <npm      | pnpm                                                    | yarn | bun>` | Choose the package manager for dependency installation |
+| `--help`, `-h`  | Show command help                                       |
 
 React flags:
 
-| Flag | Description |
-| --- | --- |
-| `--tw`, `--tailwind` | Include Tailwind CSS |
-| `--serverless` | Include Netlify Functions endpoints |
-| `--ts`, `--typescript` | Generate TypeScript files |
-| `--js`, `--javascript` | Generate JavaScript files |
+| Flag                   | Description                         |
+| ---------------------- | ----------------------------------- |
+| `--tw`, `--tailwind`   | Include Tailwind CSS                |
+| `--serverless`         | Include Netlify Functions endpoints |
+| `--ts`, `--typescript` | Generate TypeScript files           |
+| `--js`, `--javascript` | Generate JavaScript files           |
 
 PERN flags:
 
-| Flag | Description |
-| --- | --- |
-| `--tw`, `--tailwind` | Include Tailwind CSS in the React client |
-| `--ts`, `--typescript` | Generate TypeScript files |
-| `--js`, `--javascript` | Generate JavaScript files |
-| `--sq-pg`, `--sq-postgres` | Use Sequelize with PostgreSQL |
-| `--sq-mysql` | Use Sequelize with MySQL |
-| `--sq-sqlite` | Use Sequelize with SQLite |
-| `--sq-mariadb` | Use Sequelize with MariaDB |
-| `--sq-mssql` | Use Sequelize with Microsoft SQL Server |
+| Flag                       | Description                              |
+| -------------------------- | ---------------------------------------- |
+| `--tw`, `--tailwind`       | Include Tailwind CSS in the React client |
+| `--ts`, `--typescript`     | Generate TypeScript files                |
+| `--js`, `--javascript`     | Generate JavaScript files                |
+| `--sq-pg`, `--sq-postgres` | Use Sequelize with PostgreSQL            |
+| `--sq-mysql`               | Use Sequelize with MySQL                 |
+| `--sq-sqlite`              | Use Sequelize with SQLite                |
+| `--sq-mariadb`             | Use Sequelize with MariaDB               |
+| `--sq-mssql`               | Use Sequelize with Microsoft SQL Server  |
 
 PHP flags and helpers:
 
-| Command or flag | Description |
-| --- | --- |
-| `--tw`, `--tailwind` | Include Tailwind CSS in the generated PHP layout |
-| `--bs`, `--bootstrap` | Include Bootstrap in the generated PHP layout |
-| `--dir <path>` | Create the PHP starter inside another directory |
-| `--dry-run` | Preview files without writing |
-| `--force`, `-f` | Overwrite existing generated files |
-| `scafkit make:controller Invoice` | Create `app/Controllers/InvoiceController.php` |
-| `scafkit make:controller Invoice approve reject` | Create a controller with extra methods |
+| Command or flag                                            | Description                                                     |
+| ---------------------------------------------------------- | --------------------------------------------------------------- |
+| `--tw`, `--tailwind`                                       | Include Tailwind CSS in the generated PHP layout                |
+| `--bs`, `--bootstrap`                                      | Include Bootstrap in the generated PHP layout                   |
+| `--dir <path>`                                             | Create the PHP starter inside another directory                 |
+| `--dry-run`                                                | Preview files without writing                                   |
+| `--force`, `-f`                                            | Overwrite existing generated files                              |
+| `scafkit make:controller Invoice`                          | Create`app/Controllers/InvoiceController.php`                   |
+| `scafkit make:controller Invoice approve reject`           | Create a controller with extra methods                          |
 | `scafkit make:route GET /invoices InvoiceController@index` | Append a route and scaffold missing controller/model/view files |
 
 ## Commands
 
-| Command | Description |
-| --- | --- |
-| `scafkit` | Open the interactive shell |
-| `scafkit help` | Show command help |
-| `scafkit help react` | Show focused React help |
-| `scafkit help pern` | Show focused PERN help |
-| `scafkit help php` | Show focused PHP help |
-| `scafkit list` | List available templates |
-| `scafkit run` | Start the detected React/Vite app |
-| `scafkit run pern` | Start PERN client and API servers |
-| `scafkit run php` | Start or link a PHP project |
-| `scafkit inspect` | Detect the current project and list scripts/package manager |
-| `scafkit doctor` | Check Scafkit, Node, npm, Git, PHP, Composer, and package-manager availability |
-| `scafkit update --check` | Check the latest npm version without installing |
-| `scafkit update` | Check for an update and install after confirmation |
-| `scafkit status` | Show managed dev-server status |
-| `scafkit stop all` | Stop tracked dev servers |
+| Command                  | Description                                                                    |
+| ------------------------ | ------------------------------------------------------------------------------ |
+| `scafkit`                | Open the interactive shell                                                     |
+| `scafkit help`           | Show command help                                                              |
+| `scafkit help react`     | Show focused React help                                                        |
+| `scafkit help pern`      | Show focused PERN help                                                         |
+| `scafkit help php`       | Show focused PHP help                                                          |
+| `scafkit list`           | List available templates                                                       |
+| `scafkit run`            | Start the detected React/Vite app                                              |
+| `scafkit run pern`       | Start PERN client and API servers                                              |
+| `scafkit run php`        | Start or link a PHP project                                                    |
+| `scafkit inspect`        | Detect the current project and list scripts/package manager                    |
+| `scafkit doctor`         | Check Scafkit, Node, npm, Git, PHP, Composer, and package-manager availability |
+| `scafkit update --check` | Check the latest npm version without installing                                |
+| `scafkit update`         | Check for an update and install after confirmation                             |
+| `scafkit status`         | Show managed dev-server status                                                 |
+| `scafkit stop all`       | Stop tracked dev servers                                                       |
 
 ## Examples
 
