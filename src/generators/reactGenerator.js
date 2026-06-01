@@ -5,6 +5,11 @@ const {
   createTracker,
   sanitizePackageName
 } = require('../utils/fileSystem');
+const {
+  createReactAppJsx: createReactTemplateJsx,
+  createReactAppTsx: createReactTemplateTsx,
+  createReactStyles: createReactTemplateStyles
+} = require('../templates/react/ui');
 
 const versions = Object.freeze({
   react: '^19.2.6',
@@ -487,6 +492,7 @@ function generateReactProject({ targetDir, force = false, serverless = false, ta
     'src/app',
     'src/components',
     'src/features',
+    'src/styles',
     'src/lib/adapters',
     'src/lib/api',
     'src/lib/config',
@@ -559,8 +565,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>
 );
 `,
-    [`src/app/App.${extension}`]: isTypeScript ? createAppTsx(serverless, tailwind) : createAppJsx(serverless, tailwind),
-    'src/styles.css': createStyles(tailwind),
+    [`src/app/App.${extension}`]: isTypeScript
+      ? createReactTemplateTsx({ serverless, tailwind })
+      : createReactTemplateJsx({ serverless, tailwind }),
+    'src/styles/app.css': createReactTemplateStyles(tailwind),
     ...(isTypeScript ? { 'src/lib/types/common.ts': String.raw`export type ApiResult<TData> = {
   data: TData;
   message: string;

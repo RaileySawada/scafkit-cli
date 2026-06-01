@@ -2,24 +2,25 @@
   "name": "scafkit-cli",
   "version": "1.0.8",
   "description": "Interactive CLI for generating starter projects.",
-  "main": "bin/scafkit-cli.js",
+  "main": "src/index.js",
   "type": "commonjs",
   "engines": {
     "node": ">=20.19"
   },
   "packageManager": "npm@11.13.0",
   "bin": {
-    "scafkit": "bin/scafkit-cli.js"
+    "scafkit": "bin/scafkit.js"
   },
   "files": [
     "bin",
     "src",
+    "docs",
     "README.md",
     "CHANGELOG.md"
   ],
   "scripts": {
-    "start": "node ./bin/scafkit-cli.js",
-    "check": "node --check bin/scafkit-cli.js && node --check src/generators/phpGenerator.js && node --check src/generators/pernGenerator.js && node --check src/generators/reactGenerator.js && node --check src/utils/fileSystem.js",
+    "start": "node ./bin/scafkit.js",
+    "check": "node --check bin/scafkit.js && node --check src/index.js && node --check src/createCli.js && node --check src/commands/help.js && node --check src/core/scaffold.js && node --check src/core/template-manager.js && node --check src/core/package-manager.js && node --check src/prompts/project.prompt.js && node --check src/templates/php/ui.js && node --check src/templates/pern/client.js && node --check src/templates/react/ui.js && node --check src/ui/banner.js && node --check src/ui/theme.js && node --check src/generators/phpGenerator.js && node --check src/generators/pernGenerator.js && node --check src/generators/reactGenerator.js && node --check src/utils/fileSystem.js && node --check src/utils/fs.js && node --check src/utils/path.js && node --check src/utils/logger.js && node --check src/utils/exec.js && node tests/scafkit.test.js",
     "pack:dry-run": "npm pack --dry-run",
     "security:audit": "npm audit --audit-level=moderate",
     "security:prod": "npm audit --omit=dev --audit-level=moderate",

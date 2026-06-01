@@ -5,6 +5,11 @@ const {
   createTracker,
   sanitizePackageName
 } = require('../utils/fileSystem');
+const {
+  createPernClientAppJsx: createPernTemplateAppJsx,
+  createPernClientAppTsx: createPernTemplateAppTsx,
+  createPernClientStyles: createPernTemplateStyles
+} = require('../templates/pern/client');
 
 const versions = Object.freeze({
   react: '^19.2.6',
@@ -715,6 +720,7 @@ function generatePernProject({ targetDir, force = false, sequelize = false, sequ
     'client/src/app',
     'client/src/components',
     'client/src/features/health',
+    'client/src/styles',
     'client/src/lib/api',
     'client/src/lib/config',
     'client/src/lib/services',
@@ -807,8 +813,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>
 );
 `,
-    [`client/src/app/App.${extension}`]: isTypeScript ? createClientApp(tailwind) : createClientAppJsx(tailwind),
-    'client/src/styles.css': createClientStyles(tailwind),
+    [`client/src/app/App.${extension}`]: isTypeScript
+      ? createPernTemplateAppTsx(tailwind)
+      : createPernTemplateAppJsx(tailwind),
+    'client/src/styles/app.css': createPernTemplateStyles(tailwind),
     ...(isTypeScript ? { 'client/src/lib/types/api.ts': String.raw`export type HealthStatus = {
   status: string;
   service: string;

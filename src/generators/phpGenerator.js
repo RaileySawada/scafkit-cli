@@ -1,5 +1,14 @@
 const fs = require('fs');
 const path = require('path');
+const {
+  createPhpFootTemplate: createPhpTemplateFoot,
+  createPhpForgotPasswordPageTemplate,
+  createPhpGeneratedViewTemplate,
+  createPhpHeaderTemplate,
+  createPhpHeadTemplate: createPhpTemplateHead,
+  createPhpLoginPageTemplate,
+  createPhpStyles
+} = require('../templates/php/ui');
 
 function ensureDirectory(directoryPath) {
   fs.mkdirSync(directoryPath, { recursive: true });
@@ -176,38 +185,7 @@ class ${className} extends DatabaseModel
 function createViewTemplate(pageName) {
   const title = toPageTitle(pageName);
 
-  return String.raw`<main class="scafkit-page">
-    <section class="scafkit-hero">
-        <div class="scafkit-hero__content">
-            <span class="scafkit-kicker">Application module</span>
-            <h1>${title}</h1>
-            <p>A routed page module with controller, model, and view files already separated for production-oriented growth.</p>
-        </div>
-        <div class="scafkit-command">
-            <span>route</span>
-            <strong><?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/') ?></strong>
-        </div>
-    </section>
-
-    <section class="scafkit-grid" aria-label="Generated page details">
-        <article class="scafkit-card">
-            <span>01</span>
-            <h2>Controller Boundary</h2>
-            <p>Request handling stays in the controller while the view focuses on presentation.</p>
-        </article>
-        <article class="scafkit-card">
-            <span>02</span>
-            <h2>Model Slot</h2>
-            <p>A paired model file is ready for queries, persistence rules, and feature data.</p>
-        </article>
-        <article class="scafkit-card">
-            <span>03</span>
-            <h2>Responsive View</h2>
-            <p>The layout is structured for dashboards, forms, records, and repeatable app surfaces.</p>
-        </article>
-    </section>
-</main>
-`;
+  return createPhpGeneratedViewTemplate(pageName, title);
 }
 
 function controllerHasMethod(content, methodName) {
@@ -642,7 +620,9 @@ class LoginController
 
     public function index(): void
     {
-        \App\Core\View::render('Login', 'Login');
+        \App\Core\View::render('Login', 'Login', [
+            'loginAttempts' => (int) ($_SESSION['login_attempts_count'] ?? 0),
+        ]);
     }
 
     public function authenticate(): void
@@ -659,6 +639,7 @@ class LoginController
         $loginModel = new LoginModel();
 
         if ($loginModel->tooManyAttempts($email, $ipAddress)) {
+            $_SESSION['login_attempts_count'] = $loginModel->countRecentAttempts($email, $ipAddress);
             $this->sessionService->flash('error', 'Too many login attempts. Please try again in 15 minutes.');
             $this->redirect('/');
         }
@@ -667,11 +648,13 @@ class LoginController
 
         if (!$user || !password_verify($password, $user['password'])) {
             $loginModel->recordFailedAttempt($email, $ipAddress);
+            $_SESSION['login_attempts_count'] = $loginModel->countRecentAttempts($email, $ipAddress);
             $this->sessionService->flash('error', 'Invalid login credentials.');
             $this->redirect('/');
         }
 
         $loginModel->clearAttempts($email, $ipAddress);
+        $_SESSION['login_attempts_count'] = 0;
 
         $this->sessionService->login([
             'id' => $user['id'],
@@ -814,6 +797,11 @@ class LoginModel extends DatabaseModel
 
     public function tooManyAttempts(string $email, string $ipAddress): bool
     {
+        return $this->countRecentAttempts($email, $ipAddress) >= 5;
+    }
+
+    public function countRecentAttempts(string $email, string $ipAddress): int
+    {
         $statement = $this->connection->prepare(
             'SELECT COUNT(*) AS attempts
              FROM login_attempts
@@ -826,7 +814,7 @@ class LoginModel extends DatabaseModel
             'ip_address' => $ipAddress,
         ]);
 
-        return (int) ($statement->fetch()['attempts'] ?? 0) >= 5;
+        return (int) ($statement->fetch()['attempts'] ?? 0);
     }
 
     public function recordFailedAttempt(string $email, string $ipAddress): void
@@ -912,24 +900,22 @@ class SessionService
 }
 `,
 
-    'app/Views/Layouts/Head.php': createPhpHeadTemplate(cssFramework),
+    'app/Views/Layouts/Head.php': createPhpTemplateHead(cssFramework),
 
-    'app/Views/Layouts/Foot.php': createPhpFootTemplate(cssFramework),
+    'app/Views/Layouts/Foot.php': createPhpTemplateFoot(cssFramework),
 
-    'app/Views/Components/Header.php': String.raw`<header class="site-header">
-    <a class="site-brand" href="<?= BASE_URL ?>/">
-        <span class="site-brand__mark">S</span>
-        <span><?= htmlspecialchars(APP_NAME) ?></span>
-    </a>
-    <nav class="site-nav" aria-label="Primary">
+    'app/Views/Components/Header.php': createPhpHeaderTemplate(cssFramework),
+
+    'app/Views/Components/Footer.php': String.raw`<footer class="site-footer">
+    <div>
+        <strong><?= htmlspecialchars(APP_NAME) ?></strong>
+        <p>PHP MVC starter generated by Scafkit.</p>
+    </div>
+    <nav aria-label="Footer">
         <a href="<?= BASE_URL ?>/">Login</a>
         <a href="<?= BASE_URL ?>/forgot-password">Recover</a>
     </nav>
-</header>
-`,
-
-    'app/Views/Components/Footer.php': String.raw`<footer class="site-footer">
-    <p>&copy; <?= date('Y') ?> <?= htmlspecialchars(APP_NAME) ?>. All rights reserved.</p>
+    <span>&copy; <?= date('Y') ?> Scafkit CLI</span>
 </footer>
 `,
 
@@ -972,64 +958,9 @@ $success = $sessionService->getFlash('success');
 <?php endif; ?>
 `,
 
-    'app/Views/Pages/Login.php': String.raw`<main class="auth-page">
-    <section class="auth-intro">
-        <span class="scafkit-kicker">Production PHP MVC</span>
-        <h1>Secure access for a clean application workspace.</h1>
-        <p>Scafkit ships authentication, sessions, database models, and guarded login attempts in a structure that is ready to harden further.</p>
-        <div class="scafkit-metrics" aria-label="Application readiness">
-            <span><strong>Sessions</strong> HTTP-only cookies</span>
-            <span><strong>Database</strong> PDO prepared queries</span>
-            <span><strong>Defense</strong> login attempt limits</span>
-        </div>
-    </section>
+    'app/Views/Pages/Login.php': createPhpLoginPageTemplate(cssFramework),
 
-    <section class="auth-card">
-        <span class="scafkit-kicker">Secure entry</span>
-        <h2>Sign in</h2>
-        <p>Use your account credentials to open the dashboard.</p>
-
-        <form method="POST" action="<?= BASE_URL ?>/login" class="auth-form">
-            <label>
-                Email
-                <input type="email" name="email" autocomplete="email" required>
-            </label>
-
-            <label>
-                Password
-                <input type="password" name="password" autocomplete="current-password" required>
-            </label>
-
-            <button type="submit">Sign in</button>
-        </form>
-
-        <div class="auth-actions">
-            <a href="<?= BASE_URL ?>/forgot-password">Forgot password?</a>
-            <span>5 failed attempts trigger a 15 minute cooldown.</span>
-        </div>
-    </section>
-</main>
-`,
-
-    'app/Views/Pages/ForgotPassword.php': String.raw`<main class="auth-page auth-page--compact">
-    <section class="auth-card">
-        <span class="scafkit-kicker">Account recovery</span>
-        <h1>Recover access without exposing account details.</h1>
-        <p>Collect the account email and connect your preferred recovery delivery flow behind this focused screen.</p>
-
-        <form method="POST" action="<?= BASE_URL ?>/forgot-password" class="auth-form">
-            <label>
-                Email
-                <input type="email" name="email" autocomplete="email" required>
-            </label>
-
-            <button type="submit">Send recovery instructions</button>
-        </form>
-
-        <a href="<?= BASE_URL ?>/">Back to login</a>
-    </section>
-</main>
-`,
+    'app/Views/Pages/ForgotPassword.php': createPhpForgotPasswordPageTemplate(cssFramework),
 
     'config/autoload.php': String.raw`<?php
 
@@ -1632,10 +1563,29 @@ VALUES (
 )
 ON DUPLICATE KEY UPDATE email = email;
 `,
+    'public/css/login.css': createPhpStyles(cssFramework),
   };
 
   for (const [relativePath, content] of Object.entries(files)) {
     writeTextFile(path.join(targetDir, relativePath), content, force, tracker);
+  }
+
+  const terminalIconAsset = path.join(
+    __dirname,
+    '..',
+    'templates',
+    'php',
+    'assets',
+    'scafkit-terminal-icon.png',
+  );
+
+  if (fs.existsSync(terminalIconAsset)) {
+    writeBinaryFile(
+      path.join(targetDir, 'public/images/scafkit-terminal-icon.png'),
+      fs.readFileSync(terminalIconAsset),
+      force,
+      tracker,
+    );
   }
 
   writeBinaryFile(path.join(targetDir, 'public/uploads/profile_picture/default.avif'), Buffer.alloc(0), force, tracker);

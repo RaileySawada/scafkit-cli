@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.0.8
+
+### CLI
+
+- Kept the published executable to a single `bin/scafkit.js` entry.
+- Improved managed server behavior so Scafkit-started servers stay trackable through `status` and `stop` after reopening the CLI.
+
+### PHP
+
+- Refined the generated PHP login screen into a responsive Scafkit-branded terminal-style interface.
+- Updated login-attempt display to start at `Login attempts: 0` and reflect stored database attempts after authentication is connected.
+- Added a transparent Scafkit terminal icon asset and kept the large preview image out of npm package contents.
+- Polished the generated PHP layout with a window-bar header, full-screen first section, full-width details section, and improved footer.
+
+### React and PERN
+
+- Redesigned generated React and PERN starter UIs to better advertise Scafkit while keeping server and API status checks visible.
+- Kept CSS and Tailwind variants aligned so each style option presents the same application structure.
+
+### Documentation
+
+- Expanded usage documentation for PHP, PERN, and React starter commands.
+
 ## 1.0.7
 
 ### Maintenance

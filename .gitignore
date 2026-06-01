@@ -19,6 +19,10 @@ dist/
 build/
 coverage/
 .nyc_output/
+tmp/
+temp/
+playground/
+examples/generated/
 
 # Package artifacts
 *.tgz
@@ -27,12 +31,17 @@ coverage/
 # Caches
 .cache/
 .parcel-cache/
+.vite/
+.turbo/
+.rollup.cache/
 .eslintcache
+*.tsbuildinfo
 
 # Runtime files
 *.pid
 *.seed
 *.pid.lock
+.scafkit/
 
 # OS and editor files
 .DS_Store

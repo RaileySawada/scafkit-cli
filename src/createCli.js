@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const readline = require("readline");
 const path = require("path");
 const fs = require("fs");
@@ -8,423 +6,13 @@ const {
   generatePhpProject,
   generatePhpController,
   generatePhpRoute,
-} = require("../src/generators/phpGenerator");
-const { generatePernProject } = require("../src/generators/pernGenerator");
-const { generateReactProject } = require("../src/generators/reactGenerator");
+} = require("./generators/phpGenerator");
+const { generatePernProject } = require("./generators/pernGenerator");
+const { generateReactProject } = require("./generators/reactGenerator");
 const { spawn, spawnSync } = require("child_process");
-const packageJson = require("../package.json");
-
-function enableUtf8Console() {
-  if (process.platform !== "win32") {
-    return;
-  }
-
-  spawnSync("chcp.com", ["65001"], {
-    stdio: "ignore",
-    shell: false,
-  });
-}
-
-const c = {
-  reset: "\x1b[0m",
-  bold: "\x1b[1m",
-  dim: "\x1b[2m",
-  italic: "\x1b[3m",
-
-  black: "\x1b[30m",
-  red: "\x1b[31m",
-  green: "\x1b[32m",
-  yellow: "\x1b[33m",
-  blue: "\x1b[34m",
-  magenta: "\x1b[35m",
-  cyan: "\x1b[36m",
-  white: "\x1b[37m",
-
-  bBlack: "\x1b[90m",
-  bRed: "\x1b[91m",
-  bGreen: "\x1b[92m",
-  bYellow: "\x1b[93m",
-  bBlue: "\x1b[94m",
-  bMagenta: "\x1b[95m",
-  bCyan: "\x1b[96m",
-  bWhite: "\x1b[97m",
-
-  fg: (n) => `\x1b[38;5;${n}m`,
-};
-
-const GRAD = [c.fg(51), c.fg(45), c.fg(39), c.fg(33), c.fg(27), c.fg(21)];
-
-const A = c.fg(51);
-const A2 = c.fg(226);
-const A3 = c.fg(226);
-const DIM = c.bBlack;
-
-const ICON = Object.freeze({
-  bolt: "⚡",
-  warn: "!",
-  mark: "◆",
-  work: "◈",
-  arrow: "▸",
-  fail: "x",
-  dot: "·",
-  selected: "●",
-  unselected: "○",
-  next: "→",
-  hint: "← →",
-});
-
-const PKG = {
-  name: packageJson.name,
-  version: packageJson.version,
-  author: packageJson.author || "Railey Sawada",
-  meaning: "Starter scaffolding CLI",
-};
-
-function box(lines, accent = A) {
-  const width = Math.max(...lines.map((l) => stripAnsi(l).length)) + 4;
-  const top = `${accent}╭${"─".repeat(width - 2)}╮${c.reset}`;
-  const bottom = `${accent}╰${"─".repeat(width - 2)}╯${c.reset}`;
-  const middle = lines.map((l) => {
-    const visible = stripAnsi(l).length;
-    const pad = width - 2 - visible - 2;
-    return `${accent}│${c.reset} ${l}${" ".repeat(Math.max(0, pad))} ${accent}│${c.reset}`;
-  });
-  return [top, ...middle, bottom].join("\n");
-}
-
-function hRule(width = 54, accent = DIM) {
-  return `${accent}${"─".repeat(width)}${c.reset}`;
-}
-
-function stripAnsi(str) {
-  return str.replace(/\x1b\[[0-9;]*m/g, "");
-}
-
-function padAnsiRight(value, width) {
-  const visible = stripAnsi(value).length;
-  return value + " ".repeat(Math.max(0, width - visible));
-}
-
-function banner() {
-  const rows = [
-    " ███████╗ ██████╗ █████╗ ███████╗██╗  ██╗██╗████████╗       ██████╗██╗     ██╗",
-    " ██╔════╝██╔════╝██╔══██╗██╔════╝██║ ██╔╝██║╚══██╔══╝      ██╔════╝██║     ██║",
-    " ███████╗██║     ███████║█████╗  █████╔╝ ██║   ██║   █████╗██║     ██║     ██║",
-    " ╚════██║██║     ██╔══██║██╔══╝  ██╔═██╗ ██║   ██║   ╚════╝██║     ██║     ██║",
-    " ███████║╚██████╗██║  ██║██║     ██║  ██╗██║   ██║         ╚██████╗███████╗██║",
-    " ╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝╚═╝   ╚═╝          ╚═════╝╚══════╝╚═╝",
-  ];
-
-  const BLUE = c.fg(39);
-  const BLUE2 = c.fg(33);
-  const BLUE3 = c.fg(27);
-  const BLUE4 = c.fg(21);
-  const YELLOW = c.fg(226);
-  const WHITE = c.bWhite;
-  const MUTED = c.fg(240);
-
-  const rowColors = [c.fg(87), c.fg(81), c.fg(45), BLUE, BLUE2, BLUE3];
-
-  const W = Math.max(62, ...rows.map((row) => stripAnsi(row).length));
-
-  const borderTop = `  ${BLUE}${c.bold}╔${"═".repeat(W + 2)}╗${c.reset}`;
-  const borderBottom = `  ${BLUE}${c.bold}╚${"═".repeat(W + 2)}╝${c.reset}`;
-  const empty = `  ${BLUE}${c.bold}║${c.reset} ${" ".repeat(W)} ${BLUE}${c.bold}║${c.reset}`;
-
-  const centerText = (text) => {
-    const len = stripAnsi(text).length;
-    const left = Math.floor((W - len) / 2);
-    const right = Math.max(0, W - len - left);
-    return " ".repeat(left) + text + " ".repeat(right);
-  };
-
-  const line = (text = "") => {
-    const visible = stripAnsi(text).length;
-    const pad = Math.max(0, W - visible);
-    return `  ${BLUE}${c.bold}║${c.reset} ${text}${" ".repeat(pad)} ${BLUE}${c.bold}║${c.reset}`;
-  };
-
-  const artLine = (row, color) => {
-    const visible = stripAnsi(row).length;
-    const pad = Math.max(0, W - visible);
-    return `  ${BLUE}${c.bold}║${c.reset} ${color}${c.bold}${row}${c.reset}${" ".repeat(pad)} ${BLUE}${c.bold}║${c.reset}`;
-  };
-
-  console.log();
-  console.log(borderTop);
-  console.log(empty);
-
-  rows.forEach((row, i) => {
-    console.log(artLine(row, rowColors[i]));
-  });
-
-  console.log(empty);
-  console.log(
-    line(centerText(`${WHITE}${c.bold}Project starter kit${c.reset}`)),
-  );
-  console.log(
-    line(
-      centerText(
-        `${MUTED}PHP MVC  ${ICON.dot}  PERN  ${ICON.dot}  React${c.reset}`,
-      ),
-    ),
-  );
-  console.log(line(centerText(`${BLUE}${c.bold}v${PKG.version}${c.reset}`)));
-  console.log(empty);
-  console.log(borderBottom);
-  console.log();
-
-  console.log(
-    `  ${DIM}┌─[${c.reset}${BLUE}${c.bold}scafkit${c.reset}${DIM}]─[${c.reset}${YELLOW}${c.bold}ready${c.reset}${DIM}]${c.reset}`,
-  );
-  console.log(
-    `  ${DIM}├─${c.reset} ${MUTED}templates${c.reset}  ${BLUE}${c.bold}php${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}pern${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}react${c.reset}`,
-  );
-  console.log(
-    `  ${DIM}├─${c.reset} ${MUTED}create${c.reset}     ${YELLOW}${c.bold}php${c.reset} ${c.white}<app>${c.reset}   ${DIM}|${c.reset}   ${YELLOW}${c.bold}pern${c.reset} ${c.white}<app>${c.reset} ${DIM}--tw${c.reset}   ${DIM}|${c.reset}   ${YELLOW}${c.bold}react${c.reset} ${c.white}<app>${c.reset} ${DIM}--js${c.reset}`,
-  );
-  console.log(
-    `  ${DIM}├─${c.reset} ${MUTED}ops${c.reset}        ${BLUE}${c.bold}help${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}pwd${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}cd${c.reset} ${c.white}<dir>${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}run${c.reset} ${DIM}/${c.reset} ${BLUE}${c.bold}update${c.reset}`,
-  );
-  console.log(
-    `  ${DIM}└─${c.reset} ${MUTED}php${c.reset}        ${YELLOW}${c.bold}make:controller${c.reset} ${c.white}Invoice approve reject${c.reset} ${DIM}/${c.reset} ${YELLOW}${c.bold}make:route${c.reset}`,
-  );
-  console.log();
-}
-
-function formatOptions(opts) {
-  return opts
-    .map(
-      ([flag, desc]) =>
-        `  ${A2}${c.bold}${flag.padEnd(16)}${c.reset}${c.white}${desc}${c.reset}`,
-    )
-    .join("\n");
-}
-
-function formatSteps(steps) {
-  return steps
-    .map((s, i) => `  ${DIM}${i + 1}.${c.reset} ${A}${s}${c.reset}`)
-    .join("\n");
-}
-
-const HELP_TOPICS = {
-  php: () => {
-    console.log(`\n  ${A}${c.bold}${ICON.bolt} PHP MVC Starter${c.reset}`);
-    console.log(`  ${hRule(48)}\n`);
-    console.log(
-      `  ${A2}${c.bold}scafkit php${c.reset} ${c.white}[folder] [options]${c.reset}\n`,
-    );
-    console.log(`${c.bold}  Options${c.reset}`);
-    console.log(
-      formatOptions([
-        ["[folder]", "Target folder — use . for current directory"],
-        ["make:controller", "Create a controller in the current PHP starter"],
-        ["make:route", "Append a route and scaffold missing MVC files"],
-        ["methodName", "Add one or more methods to the controller"],
-        ["--session, -s", "Add SessionService wiring to generated controllers"],
-        ["--tw", "Include Tailwind CSS through the generated layout"],
-        ["--bs", "Include Bootstrap through the generated layout"],
-        ["--dir <path>", "Create the target folder inside another directory"],
-        ["--dry-run", "Preview files without writing them"],
-        ["--force", "Overwrite any existing files"],
-        ["--help", "Show this guide without writing files"],
-      ]),
-    );
-    console.log(`\n${c.bold}  Use it for${c.reset}`);
-    console.log(
-      `  ${DIM}Server-rendered PHP MVC apps with auth, routing, sessions, and env config.${c.reset}`,
-    );
-    console.log(`\n${c.bold}  Recommended steps${c.reset}`);
-    console.log(
-      formatSteps([
-        "scafkit php php-auth-app",
-        "cd php-auth-app",
-        "cp .env.example .env",
-        "scafkit run php",
-        "scafkit make:controller Invoice approve reject --session",
-        "scafkit make:route GET /invoices InvoiceController@index",
-      ]),
-    );
-    console.log();
-  },
-
-  pern: () => {
-    console.log(
-      `\n  ${A}${c.bold}${ICON.bolt} PERN Full-Stack Starter${c.reset}`,
-    );
-    console.log(`  ${hRule(48)}\n`);
-    console.log(
-      `  ${A2}${c.bold}scafkit pern${c.reset} ${c.white}[folder] [options]${c.reset}\n`,
-    );
-    console.log(`${c.bold}  Options${c.reset}`);
-    console.log(
-      formatOptions([
-        ["[folder]", "Target folder — use . for current directory"],
-        ["--sq-pg", "Use Sequelize v7 with PostgreSQL"],
-        ["--sq-mysql", "Use Sequelize v7 with MySQL"],
-        ["--sq-sqlite", "Use Sequelize v7 with SQLite"],
-        ["--sq-mariadb", "Use Sequelize v7 with MariaDB"],
-        ["--sq-mssql", "Use Sequelize v7 with Microsoft SQL Server"],
-        ["--tw", "Include Tailwind CSS in the React client"],
-        ["--ts / --js", "Choose TypeScript or JavaScript without prompting"],
-        ["--yes", "Use defaults and install dependencies without prompting"],
-        ["--no-install", "Create files without installing dependencies"],
-        ["--pm <name>", "Install with npm, pnpm, yarn, or bun"],
-        ["--dir <path>", "Create the target folder inside another directory"],
-        ["--dry-run", "Preview files without writing them"],
-        ["--force", "Overwrite any existing files"],
-        ["--help", "Show this guide without writing files"],
-      ]),
-    );
-    console.log(`\n${c.bold}  Use it for${c.reset}`);
-    console.log(
-      `  ${DIM}PostgreSQL + Express + React + Node with separated client/server workspaces.${c.reset}`,
-    );
-    console.log(`\n${c.bold}  Recommended steps${c.reset}`);
-    console.log(
-      formatSteps([
-        "scafkit pern inventory-api --sq-pg --tw",
-        "cd inventory-api/client && npm install",
-        "cd ../server && npm install",
-        "cp server/.env.example server/.env",
-        "scafkit run",
-      ]),
-    );
-    console.log();
-  },
-
-  react: () => {
-    console.log(
-      `\n  ${A}${c.bold}${ICON.bolt} React TypeScript Starter${c.reset}`,
-    );
-    console.log(`  ${hRule(48)}\n`);
-    console.log(
-      `  ${A2}${c.bold}scafkit react${c.reset} ${c.white}[folder] [options]${c.reset}\n`,
-    );
-    console.log(`${c.bold}  Options${c.reset}`);
-    console.log(
-      formatOptions([
-        ["[folder]", "Target folder — use . for current directory"],
-        ["--serverless", "Include Netlify Functions endpoints"],
-        ["--tw", "Include Tailwind CSS"],
-        ["--ts / --js", "Choose TypeScript or JavaScript without prompting"],
-        ["--yes", "Use defaults and install dependencies without prompting"],
-        ["--no-install", "Create files without installing dependencies"],
-        ["--pm <name>", "Install with npm, pnpm, yarn, or bun"],
-        ["--dir <path>", "Create the target folder inside another directory"],
-        ["--dry-run", "Preview files without writing them"],
-        ["--force", "Overwrite any existing files"],
-        ["--help", "Show this guide without writing files"],
-      ]),
-    );
-    console.log(`\n${c.bold}  Use it for${c.reset}`);
-    console.log(
-      `  ${DIM}Modern React TypeScript frontends, dashboards, landing apps, serverless web apps.${c.reset}`,
-    );
-    console.log(`\n${c.bold}  Recommended steps${c.reset}`);
-    console.log(
-      formatSteps([
-        "scafkit react client-app --tw",
-        "cd client-app && npm install",
-        "scafkit run",
-        "npm run build",
-      ]),
-    );
-    console.log();
-  },
-};
-
-function help(topic) {
-  const key = topic && topic.toLowerCase().replace(/^scafkit-/, "");
-
-  if (key && HELP_TOPICS[key]) {
-    HELP_TOPICS[key]();
-    return;
-  }
-
-  if (key) {
-    console.log(
-      `\n  ${A3}${c.bold}${ICON.warn} No help topic for "${topic}".${c.reset}  ` +
-        `${DIM}Try ${c.reset}${A}help pern${c.reset}${DIM}, ${c.reset}${A}help react${c.reset}${DIM}, or ${c.reset}${A}help php${c.reset}\n`,
-    );
-    return;
-  }
-
-  console.log(`\n${c.bold}  Commands${c.reset}`);
-  console.log(`  ${hRule(52)}\n`);
-
-  const cmds = [
-    [
-      "scafkit pern   [folder]",
-      "--sq-pg --sq-mysql --tw --ts --js --yes --no-install --pm --dir --dry-run --force",
-      "PostgreSQL + Express + React + Node starter",
-    ],
-    [
-      "scafkit react  [folder]",
-      "--serverless --tw --ts --js --yes --no-install --pm --dir --dry-run --force",
-      "React TypeScript, optionally with Netlify Functions",
-    ],
-    [
-      "scafkit php    [folder]",
-      "--tw --bs --dir --dry-run --force | make:controller | make:route",
-      "PHP MVC authentication starter",
-    ],
-  ];
-
-  cmds.forEach(([cmd, flags, desc]) => {
-    console.log(`  ${A}${c.bold}${cmd}${c.reset}`);
-    console.log(`    ${DIM}${flags}${c.reset}`);
-    console.log(`    ${c.white}${desc}${c.reset}\n`);
-  });
-
-  console.log(
-    `  ${A2}${c.bold}help ${c.reset}${c.white}[php|pern|react]${c.reset}`,
-  );
-  console.log(
-    `    ${DIM}Detailed usage, options, and recommended commands.${c.reset}\n`,
-  );
-
-  console.log(
-    `  ${A2}${c.bold}create${c.reset} ${c.white}<php|pern|react> <folder>${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}list${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}version${c.reset}`,
-  );
-  console.log(
-    `    ${DIM}Create by template name, list available starters, or print the installed version.${c.reset}\n`,
-  );
-
-  console.log(
-    `  ${A2}${c.bold}clear${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}pwd${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}cd${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}run${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}inspect${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}doctor${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}status${c.reset} ${DIM}${ICON.dot}${c.reset} ${A2}${c.bold}stop${c.reset}`,
-  );
-  console.log(
-    `    ${DIM}Redraw banner ${ICON.dot} print directory ${ICON.dot} change directory ${ICON.dot} run dev servers ${ICON.dot} view or stop tracked servers.${c.reset}\n`,
-  );
-  console.log(
-    `  ${A2}${c.bold}run${c.reset} ${c.white}[php|react|pern|status|stop all]${c.reset}`,
-  );
-  console.log(
-    `    ${DIM}Start PHP, React, or PERN dev servers and print localhost links with active/inactive status.${c.reset}\n`,
-  );
-  console.log(`  ${A2}${c.bold}update${c.reset}`);
-  console.log(
-    `    ${DIM}Check npm for a newer CLI version and install it after confirmation. Use update --check to only check.${c.reset}\n`,
-  );
-
-  console.log(`  ${hRule(52)}\n`);
-  console.log(`  ${c.bold}Fast start${c.reset}`);
-  console.log(`  ${A}${ICON.arrow}${c.reset} scafkit pern my-app`);
-  console.log(
-    `  ${A}${ICON.arrow}${c.reset} scafkit react client-app --serverless --tw`,
-  );
-  console.log(`  ${A}${ICON.arrow}${c.reset} scafkit php auth-app`);
-  console.log(
-    `  ${A}${ICON.arrow}${c.reset} scafkit make:controller Invoice approve reject`,
-  );
-  console.log(
-    `  ${A}${ICON.arrow}${c.reset} scafkit make:route GET /invoices InvoiceController@index`,
-  );
-  console.log(
-    `\n  ${DIM}${c.italic}Tip: run ${c.reset}${A}help pern${c.reset}${DIM}${c.italic}, ${c.reset}${A}help react${c.reset}${DIM}${c.italic}, or ${c.reset}${A}help php${c.reset}${DIM}${c.italic} for focused guidance.${c.reset}\n`,
-  );
-}
+const { enableUtf8Console, c, A, A2, A3, DIM, ICON, PKG, hRule, padAnsiRight } = require("./ui/theme");
+const { banner } = require("./ui/banner");
+const { help } = require("./commands/help");
 
 function tokenize(input) {
   const tokens = [];
@@ -1699,7 +1287,7 @@ function serializeServer(server) {
 
 function saveServerState() {
   try {
-    ensureDirectory(path.dirname(serverStatePath));
+    fs.mkdirSync(path.dirname(serverStatePath), { recursive: true });
     const servers = Array.from(managedServers.values())
       .filter((server) => server.external || isProcessRunning(server.pid || server.child?.pid))
       .map(serializeServer);
@@ -1790,6 +1378,7 @@ function startManagedServer(config) {
     stdio: "ignore",
     shell: false,
     detached: true,
+    windowsHide: true,
     env: {
       ...process.env,
       BROWSER: "none",
@@ -2980,7 +2569,7 @@ async function startCli() {
   enableUtf8Console();
   restoreServerState();
   process.once("SIGINT", () => {
-    stopAllManagedServers();
+    saveServerState();
     process.exit(0);
   });
   const argv = process.argv.slice(2);
@@ -3013,4 +2602,7 @@ async function startCli() {
   rl.on("close", () => process.exit(0));
 }
 
-void startCli();
+module.exports = {
+  startCli,
+  handleCommand,
+};
