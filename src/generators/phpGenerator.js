@@ -397,11 +397,6 @@ function normalizePhpCssFramework(cssFramework) {
 
 function createPhpHeadTemplate(cssFramework = 'css') {
   const framework = normalizePhpCssFramework(cssFramework);
-  const frameworkAssets = {
-    css: '',
-    tailwind: '    <script src="https://cdn.tailwindcss.com"></script>\n',
-    bootstrap: '    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">\n'
-  };
 
   return String.raw`<?php $meta = require dirname(__DIR__, 3) . '/config/meta.php'; ?>
 <!DOCTYPE html>
@@ -411,19 +406,14 @@ function createPhpHeadTemplate(cssFramework = 'css') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="<?= htmlspecialchars($meta['description']) ?>">
     <title><?= htmlspecialchars($title ?? $meta['title']) ?></title>
-${frameworkAssets[framework]}    <link rel="stylesheet" href="<?= BASE_URL ?>/css/login.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/login.css">
 </head>
 <body data-css-framework="${framework}">
 `;
 }
 
-function createPhpFootTemplate(cssFramework = 'css') {
-  const framework = normalizePhpCssFramework(cssFramework);
-  const bootstrapScript = framework === 'bootstrap'
-    ? '    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>\n'
-    : '';
-
-  return String.raw`${bootstrapScript}    <script src="<?= BASE_URL ?>/js/login.js"></script>
+function createPhpFootTemplate() {
+  return String.raw`    <script src="<?= BASE_URL ?>/js/login.js"></script>
 </body>
 </html>
 `;

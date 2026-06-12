@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.11
+## 1.0.12
 
 ### Laravel
 
@@ -16,6 +16,7 @@
 ### Maintenance
 
 - Updated the Socket badge to the current package version and added `security:socket:score` for checking the published Socket package score after logging in.
+- Removed remote Tailwind and Bootstrap CDN tags from generated PHP templates so generated PHP starters rely on local generated CSS instead of runtime third-party assets.
 
 ## 1.0.9
 

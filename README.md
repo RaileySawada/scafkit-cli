@@ -3,7 +3,7 @@
 # Scafkit CLI
 
 [![npm version](https://img.shields.io/npm/v/scafkit-cli.svg)](https://www.npmjs.com/package/scafkit-cli)
-[![Socket Badge](https://badge.socket.dev/npm/package/scafkit-cli/1.0.11)](https://socket.dev/npm/package/scafkit-cli/overview/1.0.11)
+[![Socket Badge](https://badge.socket.dev/npm/package/scafkit-cli/1.0.12)](https://socket.dev/npm/package/scafkit-cli/overview/1.0.12)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
 
 Scafkit CLI is a practical project scaffolding and build helper for PHP MVC, PERN, React, and Laravel workflows. It helps you create starter projects, add PHP MVC files, run local projects, inspect tooling, and package Laravel apps for deployment.
