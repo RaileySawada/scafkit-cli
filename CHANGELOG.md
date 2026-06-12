@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0.11
+
+### Laravel
+
+- Updated `scafkit laravel:build` to avoid Laravel's `Migration already exists` generator error by writing missing `cache`, `cache_locks`, and `sessions` migrations directly with unique Scafkit migration filenames.
+- Improved migration detection for database cache, cache locks, and sessions by checking migration contents, filenames, and nested migration folders.
+- Changed the Laravel build database step to run `php artisan migrate:fresh`, or `php artisan migrate:fresh --seed` when seeders are present, before exporting SQL.
+- Sanitized generated MySQL/MariaDB SQL dumps for shared hosting by removing binlog and GTID statements such as `SQL_LOG_BIN` and `GTID_PURGED`, preventing `#1227 Access denied` import errors on hosts without MySQL admin privileges.
+
+### Tests
+
+- Added regression coverage for Laravel migration detection, generated Scafkit migrations, seeder detection, and shared-hosting SQL dump sanitization.
+
+### Maintenance
+
+- Updated the Socket badge to the current package version and added `security:socket:score` for checking the published Socket package score after logging in.
+
 ## 1.0.9
 
 ### Laravel

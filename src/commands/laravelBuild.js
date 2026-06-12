@@ -405,56 +405,173 @@ function migrationFiles(projectDir) {
   const dir = path.join(projectDir, "database", "migrations");
   if (!fs.existsSync(dir)) return [];
 
-  return fs
-    .readdirSync(dir)
-    .filter((name) => name.endsWith(".php"))
-    .map((name) => path.join(dir, name));
+  const files = [];
+  const visit = (currentDir) => {
+    for (const entry of fs.readdirSync(currentDir, { withFileTypes: true })) {
+      const entryPath = path.join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        visit(entryPath);
+        continue;
+      }
+
+      if (entry.isFile() && entry.name.endsWith(".php")) {
+        files.push(entryPath);
+      }
+    }
+  };
+
+  visit(dir);
+  return files;
 }
 
-function migrationsContain(projectDir, pattern) {
+function migrationsContain(projectDir, matcher) {
   return migrationFiles(projectDir).some((filePath) => {
     const text = fs.readFileSync(filePath, "utf8");
-    return pattern.test(text);
+    return matcher(text, filePath);
   });
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function migrationMentionsTable(projectDir, tableName) {
+  const escaped = escapeRegExp(tableName);
+  const tableInSchemaCall = new RegExp(
+    `(?:Schema::)?(?:create|table|drop|dropIfExists)\\s*\\([\\s\\S]{0,240}['"]${escaped}['"]`,
+    "i",
+  );
+  const tableInFilename = new RegExp(`(?:^|[_-])${escaped}(?:[_-]table|$)`, "i");
+
+  return migrationsContain(projectDir, (text, filePath) => {
+    const basename = path.basename(filePath, ".php");
+    return tableInFilename.test(basename) || tableInSchemaCall.test(text);
+  });
+}
+
+function hasDatabaseSeeders(projectDir) {
+  const seedDirs = [
+    path.join(projectDir, "database", "seeders"),
+    path.join(projectDir, "database", "seeds"),
+  ];
+
+  return seedDirs.some((dir) => {
+    if (!fs.existsSync(dir)) return false;
+    return fs.readdirSync(dir, { withFileTypes: true }).some((entry) => entry.isFile() && entry.name.endsWith(".php"));
+  });
+}
+
+function padDatePart(value) {
+  return String(value).padStart(2, "0");
+}
+
+function formatMigrationTimestamp(date) {
+  return [
+    date.getFullYear(),
+    padDatePart(date.getMonth() + 1),
+    padDatePart(date.getDate()),
+  ].join("_") + `_${padDatePart(date.getHours())}${padDatePart(date.getMinutes())}${padDatePart(date.getSeconds())}`;
+}
+
+function migrationTemplateFor(tableName) {
+  const tableDefinitions = {
+    cache: `$table->string('key')->primary();
+            $table->mediumText('value');
+            $table->integer('expiration');`,
+    cache_locks: `$table->string('key')->primary();
+            $table->string('owner');
+            $table->integer('expiration');`,
+    sessions: `$table->string('id')->primary();
+            $table->foreignId('user_id')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->longText('payload');
+            $table->integer('last_activity')->index();`,
+  };
+
+  if (!Object.prototype.hasOwnProperty.call(tableDefinitions, tableName)) {
+    throw new Error(`No migration template is available for ${tableName}.`);
+  }
+
+  return `<?php
+
+use Illuminate\\Database\\Migrations\\Migration;
+use Illuminate\\Database\\Schema\\Blueprint;
+use Illuminate\\Support\\Facades\\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('${tableName}', function (Blueprint $table) {
+            ${tableDefinitions[tableName]}
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('${tableName}');
+    }
+};
+`;
+}
+
+function writeTableMigration(projectDir, tableName, offsetSeconds = 0) {
+  const migrationsDir = path.join(projectDir, "database", "migrations");
+  fs.mkdirSync(migrationsDir, { recursive: true });
+
+  let offset = offsetSeconds;
+  while (offset < offsetSeconds + 300) {
+    const timestamp = formatMigrationTimestamp(new Date(Date.now() + offset * 1000));
+    const filePath = path.join(migrationsDir, `${timestamp}_scafkit_create_${tableName}_table.php`);
+
+    if (!fs.existsSync(filePath)) {
+      fs.writeFileSync(filePath, migrationTemplateFor(tableName));
+      return filePath;
+    }
+
+    offset += 1;
+  }
+
+  throw new Error(`Could not create a unique migration filename for ${tableName}.`);
 }
 
 async function ensureDatabaseTables(projectDir) {
   const created = [];
 
-  const hasCacheTable = migrationsContain(projectDir, /create\s*\(\s*['"]cache['"]/);
-  const hasCacheLocksTable = migrationsContain(projectDir, /create\s*\(\s*['"]cache_locks['"]/);
-  const hasSessionsTable = migrationsContain(projectDir, /create\s*\(\s*['"]sessions['"]/);
+  const requiredTables = ["cache", "cache_locks", "sessions"];
 
-  if (!hasCacheTable || !hasCacheLocksTable) {
-    await runRequired(
-      "php",
-      ["artisan", "make:cache-table"],
-      projectDir,
-      "Preparing database cache tables",
-    );
-    created.push("cache/cache_locks");
-  }
+  await withSpinner("Preparing database table migrations", async () => {
+    requiredTables.forEach((tableName, index) => {
+      if (migrationMentionsTable(projectDir, tableName)) {
+        return;
+      }
 
-  if (!hasSessionsTable) {
-    await runRequired(
-      "php",
-      ["artisan", "make:session-table"],
-      projectDir,
-      "Preparing database session table",
-    );
-    created.push("sessions");
-  }
-
-  if (created.length > 0) {
-    await runRequired(
-      "php",
-      ["artisan", "migrate", "--force"],
-      projectDir,
-      "Updating local database tables",
-    );
-  }
+      writeTableMigration(projectDir, tableName, index);
+      created.push(tableName);
+    });
+  });
 
   return created;
+}
+
+async function refreshDatabase(projectDir) {
+  const args = ["artisan", "migrate:fresh"];
+
+  if (hasDatabaseSeeders(projectDir)) {
+    args.push("--seed");
+  }
+
+  const seeded = hasDatabaseSeeders(projectDir);
+
+  await runRequired(
+    "php",
+    args,
+    projectDir,
+    seeded ? "Refreshing database with seeders" : "Refreshing database",
+  );
+
+  return seeded;
 }
 
 function dumpDatabase(projectDir, buildRoot) {
@@ -505,6 +622,7 @@ function dumpDatabase(projectDir, buildRoot) {
     child.on("close", (status) => {
       output.close();
       if (status === 0) {
+        sanitizeSqlDumpForSharedHosting(sqlPath);
         resolve({ ok: true, path: sqlPath });
         return;
       }
@@ -513,6 +631,23 @@ function dumpDatabase(projectDir, buildRoot) {
       resolve({ ok: false, message: stderr.trim() || `mysqldump exited with code ${status}` });
     });
   });
+}
+
+function sanitizeSqlDumpForSharedHosting(sqlPath) {
+  const sql = fs.readFileSync(sqlPath, "utf8");
+  const sanitized = sql
+    .split(/\r?\n/)
+    .filter((line) => {
+      const normalized = line.trim().toUpperCase();
+
+      if (normalized.includes("SQL_LOG_BIN")) return false;
+      if (normalized.includes("GTID_PURGED")) return false;
+
+      return true;
+    })
+    .join("\n");
+
+  fs.writeFileSync(sqlPath, `${sanitized.replace(/\n+$/, "")}\n`);
 }
 
 async function handleLaravelBuild() {
@@ -564,6 +699,7 @@ async function handleLaravelBuild() {
     });
 
     const createdTables = await ensureDatabaseTables(projectDir);
+    const seededDatabase = await refreshDatabase(projectDir);
 
     await withSpinner("Optimizing Laravel caches", async () => {
       for (const command of cacheCommands) {
@@ -617,10 +753,21 @@ async function handleLaravelBuild() {
       ["Public", publicDir],
       ["SQL", dump.ok ? dump.path : "not generated"],
       ["Tables", createdTables.length ? createdTables.join(", ") : "already present"],
+      ["Seeded", seededDatabase ? "yes" : "no"],
     ]);
   } catch (error) {
     printError("Laravel build failed", error.message);
   }
 }
 
-module.exports = { handleLaravelBuild };
+module.exports = {
+  handleLaravelBuild,
+  _internals: {
+    hasDatabaseSeeders,
+    migrationMentionsTable,
+    migrationFiles,
+    migrationTemplateFor,
+    sanitizeSqlDumpForSharedHosting,
+    writeTableMigration,
+  },
+};

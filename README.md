@@ -3,7 +3,7 @@
 # Scafkit CLI
 
 [![npm version](https://img.shields.io/npm/v/scafkit-cli.svg)](https://www.npmjs.com/package/scafkit-cli)
-[![Socket Badge](https://badge.socket.dev/npm/package/scafkit-cli/1.0.9)](https://badge.socket.dev/npm/package/scafkit-cli/1.0.9)
+[![Socket Badge](https://badge.socket.dev/npm/package/scafkit-cli/1.0.11)](https://socket.dev/npm/package/scafkit-cli/overview/1.0.11)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
 
 Scafkit CLI is a practical project scaffolding and build helper for PHP MVC, PERN, React, and Laravel workflows. It helps you create starter projects, add PHP MVC files, run local projects, inspect tooling, and package Laravel apps for deployment.
@@ -163,7 +163,19 @@ SESSION_DRIVER=database
 CACHE_STORE=database
 ```
 
-Before exporting SQL, Scafkit checks Laravel migrations for the `cache`, `cache_locks`, and `sessions` tables. If the migrations are missing, it creates them with Artisan, runs `php artisan migrate --force`, and exports the current MySQL/MariaDB database with `mysqldump`. The SQL dump is stored in the build root beside `.htaccess`, and its filename is the exact `DB_DATABASE` value from `.env`.
+Before exporting SQL, Scafkit checks Laravel migrations for the `cache`, `cache_locks`, and `sessions` tables. It detects existing tables from migration contents and filenames, including nested migration folders, so it does not duplicate Laravel's database cache or session migrations. If any of those tables are missing, Scafkit writes unique `scafkit_create_*_table` migrations, then refreshes the local database with:
+
+```bash
+php artisan migrate:fresh
+```
+
+If database seeders are present, Scafkit uses:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+Scafkit then exports the current MySQL/MariaDB database with `mysqldump`. The SQL dump is stored in the build root beside `.htaccess`, and its filename is the exact `DB_DATABASE` value from `.env`. Generated SQL is sanitized for shared hosting by removing binlog and GTID statements such as `SQL_LOG_BIN` and `GTID_PURGED`, which can cause `#1227 Access denied` import errors on hosts without MySQL admin privileges.
 
 After upload, edit `laravel-app/.env` with the real production domain and database credentials.
 
