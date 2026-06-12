@@ -13,6 +13,7 @@ const { spawn, spawnSync } = require("child_process");
 const { enableUtf8Console, c, A, A2, A3, DIM, ICON, PKG, hRule, padAnsiRight } = require("./ui/theme");
 const { banner } = require("./ui/banner");
 const { help } = require("./commands/help");
+const { handleLaravelBuild } = require("./commands/laravelBuild");
 
 function tokenize(input) {
   const tokens = [];
@@ -297,38 +298,56 @@ function printSuccess(title, fields) {
   });
 }
 
-let oraFactoryPromise = null;
-
-async function loadOra() {
-  if (!oraFactoryPromise) {
-    oraFactoryPromise = import("ora")
-      .then((module) => module)
-      .catch(() => null);
-  }
-
-  return oraFactoryPromise;
-}
-
 function createFallbackSpinner(text) {
+  const frames = ["-", "\\", "|", "/"];
+  let frame = 0;
+  let timer = null;
+
+  const render = (message = text) => {
+    if (!process.stdout.isTTY) return;
+    readline.clearLine(process.stdout, 0);
+    readline.cursorTo(process.stdout, 0);
+    process.stdout.write(
+      `  ${A}${frames[frame % frames.length]}${c.reset} ${c.white}${message}${c.reset}`,
+    );
+    frame += 1;
+  };
+
+  const finish = (symbol, color, message) => {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+
+    if (!process.stdout.isTTY) return;
+    readline.clearLine(process.stdout, 0);
+    readline.cursorTo(process.stdout, 0);
+    process.stdout.write(`  ${color}${symbol}${c.reset} ${c.white}${message}${c.reset}\n`);
+  };
+
   return {
     color: "cyan",
     text,
     start() {
-      process.stdout.write(
-        `  ${A}${ICON.work}${c.reset} ${c.white}${this.text || text}${c.reset}\n`,
-      );
+      render(this.text || text);
+      timer = setInterval(() => render(this.text || text), 90);
     },
     succeed(message = text) {
-      process.stdout.write(
-        `  ${c.green}${ICON.selected}${c.reset} ${c.white}${message}${c.reset}\n`,
-      );
+      finish(ICON.selected, c.green, message);
     },
     fail(message = text) {
-      process.stdout.write(
-        `  ${c.bRed}${ICON.fail}${c.reset} ${c.white}${message}${c.reset}\n`,
-      );
+      finish(ICON.fail, c.bRed, message);
     },
-    stop() {},
+    stop() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+
+      if (!process.stdout.isTTY) return;
+      readline.clearLine(process.stdout, 0);
+      readline.cursorTo(process.stdout, 0);
+    },
   };
 }
 
@@ -346,22 +365,7 @@ async function createSpinner(text) {
     return createSilentSpinner();
   }
 
-  const oraModule = await loadOra();
-
-  if (!oraModule) {
-    return createFallbackSpinner(text);
-  }
-
-  const ora = oraModule.default || oraModule;
-  const dotsSpinner = oraModule.spinners?.dots || "dots";
-
-  return ora({
-    text,
-    spinner: dotsSpinner,
-    color: "cyan",
-    isEnabled: true,
-    prefixText: " ",
-  });
+  return createFallbackSpinner(text);
 }
 
 function sleep(ms) {
@@ -2514,6 +2518,7 @@ const commandHandlers = Object.freeze({
   status: handleStatus,
   stop: handleStop,
   update: handleUpdate,
+  "laravel:build": handleLaravelBuild,
   "make:controller": handleMakeController,
   "craft:controller": handleMakeController,
   "make:route": handleMakeRoute,

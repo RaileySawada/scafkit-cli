@@ -1,9 +1,13 @@
 {
   "name": "scafkit-cli",
   "version": "1.0.9",
-  "description": "Interactive CLI for generating starter projects.",
+  "description": "Scaffold PHP, React, and PERN starters, then package Laravel apps for shared hosting.",
   "main": "src/index.js",
   "type": "commonjs",
+  "exports": {
+    ".": "./src/index.js",
+    "./package.json": "./package.json"
+  },
   "engines": {
     "node": ">=20.19"
   },
@@ -14,41 +18,55 @@
   "files": [
     "bin",
     "src",
+    "assets",
     "docs",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "scripts": {
     "start": "node ./bin/scafkit.js",
-    "check": "node --check bin/scafkit.js && node --check src/index.js && node --check src/createCli.js && node --check src/commands/help.js && node --check src/core/scaffold.js && node --check src/core/template-manager.js && node --check src/core/package-manager.js && node --check src/prompts/project.prompt.js && node --check src/templates/php/ui.js && node --check src/templates/pern/client.js && node --check src/templates/react/ui.js && node --check src/ui/banner.js && node --check src/ui/theme.js && node --check src/generators/phpGenerator.js && node --check src/generators/pernGenerator.js && node --check src/generators/reactGenerator.js && node --check src/utils/fileSystem.js && node --check src/utils/fs.js && node --check src/utils/path.js && node --check src/utils/logger.js && node --check src/utils/exec.js && node tests/scafkit.test.js",
+    "test": "node tests/scafkit.test.js",
+    "check": "node --check bin/scafkit.js && node --check src/index.js && node --check src/createCli.js && node --check src/commands/help.js && node --check src/commands/laravelBuild.js && node --check src/core/scaffold.js && node --check src/core/template-manager.js && node --check src/core/package-manager.js && node --check src/prompts/project.prompt.js && node --check src/templates/php/ui.js && node --check src/templates/pern/client.js && node --check src/templates/react/ui.js && node --check src/ui/banner.js && node --check src/ui/theme.js && node --check src/generators/phpGenerator.js && node --check src/generators/pernGenerator.js && node --check src/generators/reactGenerator.js && node --check src/utils/fileSystem.js && node --check src/utils/fs.js && node --check src/utils/path.js && node --check src/utils/logger.js && node --check src/utils/exec.js && node tests/scafkit.test.js",
     "pack:dry-run": "npm pack --dry-run",
     "security:audit": "npm audit --audit-level=moderate",
     "security:prod": "npm audit --omit=dev --audit-level=moderate",
-    "security:socket": "socket ci",
-    "security:socket:login": "socket login",
+    "security:socket": "npm exec --yes --package socket@1.1.111 -- socket ci",
+    "security:socket:login": "npm exec --yes --package socket@1.1.111 -- socket login",
     "security": "npm run security:strict",
     "security:strict": "npm run security:audit && npm run security:prod && npm run security:socket",
-    "maintenance": "npm run check && npm run security:audit && npm run security:prod && npm run pack:dry-run",
-    "prepublishOnly": "npm run check && npm run security:audit && npm run security:prod && npm run pack:dry-run"
+    "maintenance": "npm run check && npm run test && npm run security:audit && npm run security:prod && npm run pack:dry-run",
+    "prepublishOnly": "npm run maintenance"
   },
   "publishConfig": {
     "access": "public"
   },
   "keywords": [
+    "scafkit",
     "cli",
+    "scaffold",
+    "scaffolding",
     "php",
+    "laravel",
+    "laravel-builder",
     "pern",
     "react",
+    "express",
     "typescript",
+    "vite",
+    "full-stack",
     "starter",
-    "generator"
+    "generator",
+    "shared-hosting"
   ],
   "author": "Railey-Sawada",
-  "license": "MIT",
-  "dependencies": {
-    "ora": "9.4.0"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Railey-Sawada/scafkit-cli.git"
   },
-  "devDependencies": {
-    "socket": "1.1.111"
-  }
+  "bugs": {
+    "url": "https://github.com/Railey-Sawada/scafkit-cli/issues"
+  },
+  "homepage": "https://github.com/Railey-Sawada/scafkit-cli#readme",
+  "license": "MIT"
 }

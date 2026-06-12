@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.0.9
+
+### Laravel
+
+- Added `scafkit laravel:build` for packaging an existing Laravel app into a shared-hosting friendly deployment folder.
+- Added Laravel project detection, quiet Composer/PHP requirement checks, production dependency installation, frontend build support, Artisan cache clearing, and Artisan cache optimization.
+- Added deployment output inside the current Laravel project root using an `<app-name>-build` folder, with a root `.htaccess`, rewritten `public/index.php`, separated `laravel-app` folder, production `.env` defaults, and filtered development-only files.
+- Added migration checks for database-backed cache, cache locks, and sessions, with SQL export support for MySQL and MariaDB projects using the exact `DB_DATABASE` value as the SQL filename.
+- Added beginner-friendly spinner output so Laravel build steps do not print raw shell commands or noisy command results during normal operation.
+- Limited Laravel storage cleanup to `storage/logs/laravel.log` and `storage/framework/views/*.php`, keeping the normal Laravel storage folders and `.gitignore` files.
+- Preserved `bootstrap/cache/.gitignore` while excluding generated `bootstrap/cache/*.php` files so the cache directory survives shared-hosting uploads.
+
+### Documentation
+
+- Reworked the README with the banner at the top, clearer user-focused command guidance, Laravel build instructions, and npm/package links.
+- Added repository, bugs, and homepage metadata to the npm package.
+- Added the banner asset to packaged files so the README image is available from the published package.
+
+### CLI
+
+- Updated the terminal banner to match the asset title style with a Scafkit wordmark, CLI badge, tagline, and stack row.
+
+### Maintenance
+
+- Added a standalone MIT license file.
+- Included the Laravel builder in syntax checks and package dry-run validation.
+- Removed the runtime spinner dependency and replaced it with a built-in CLI spinner to reduce supply-chain surface.
+- Added a standard `npm test` script, a single maintenance release gate, package exports, and richer package keywords for clearer package metadata.
+- Removed the Socket CLI from `devDependencies` and kept Socket scans available through a pinned `npm exec` command so the package dependency graph stays empty.
+
 ## 1.0.8
 
 ### CLI

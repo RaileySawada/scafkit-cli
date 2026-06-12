@@ -140,6 +140,39 @@ const HELP_TOPICS = {
     );
     console.log();
   },
+
+  laravel: () => {
+    console.log(
+      `\n  ${A}${c.bold}${ICON.bolt} Laravel Production Builder${c.reset}`,
+    );
+    console.log(`  ${hRule(48)}\n`);
+    console.log(
+      `  ${A2}${c.bold}scafkit laravel:build${c.reset} ${c.white}from a Laravel project root${c.reset}\n`,
+    );
+    console.log(`${c.bold}  Requirements${c.reset}`);
+    console.log(
+      formatOptions([
+        ["composer", "Must be available from the terminal"],
+        ["php artisan", "The command must run from the current Laravel app"],
+        ["npm", "Used when package.json is present"],
+        ["mysqldump", "Used for MySQL/MariaDB SQL export"],
+      ]),
+    );
+    console.log(`\n${c.bold}  Output${c.reset}`);
+    console.log(
+      `  ${DIM}Creates an <app-name>-build folder inside the Laravel project with public/, laravel-app/, root .htaccess, production .env values, and a DB_DATABASE-named SQL dump when MySQL credentials work.${c.reset}`,
+    );
+    console.log(`\n${c.bold}  Recommended steps${c.reset}`);
+    console.log(
+      formatSteps([
+        "cd your-laravel-app",
+        "scafkit laravel:build",
+        "upload the generated folder contents to your hosting root",
+        "edit laravel-app/.env APP_URL and database credentials for production",
+      ]),
+    );
+    console.log();
+  },
 };
 
 function help(topic) {
@@ -153,7 +186,7 @@ function help(topic) {
   if (key) {
     console.log(
       `\n  ${A3}${c.bold}${ICON.warn} No help topic for "${topic}".${c.reset}  ` +
-        `${DIM}Try ${c.reset}${A}help pern${c.reset}${DIM}, ${c.reset}${A}help react${c.reset}${DIM}, or ${c.reset}${A}help php${c.reset}\n`,
+        `${DIM}Try ${c.reset}${A}help pern${c.reset}${DIM}, ${c.reset}${A}help react${c.reset}${DIM}, ${c.reset}${A}help php${c.reset}${DIM}, or ${c.reset}${A}help laravel${c.reset}\n`,
     );
     return;
   }
@@ -177,6 +210,11 @@ function help(topic) {
       "--tw --bs --dir --dry-run --force | make:controller | make:route",
       "PHP MVC authentication starter",
     ],
+    [
+      "scafkit laravel:build",
+      "composer install, npm build, artisan cache, package public/ + laravel-app/",
+      "Build a Laravel app for shared-hosting style deployment",
+    ],
   ];
 
   cmds.forEach(([cmd, flags, desc]) => {
@@ -186,7 +224,7 @@ function help(topic) {
   });
 
   console.log(
-    `  ${A2}${c.bold}help ${c.reset}${c.white}[php|pern|react]${c.reset}`,
+    `  ${A2}${c.bold}help ${c.reset}${c.white}[php|pern|react|laravel]${c.reset}`,
   );
   console.log(
     `    ${DIM}Detailed usage, options, and recommended commands.${c.reset}\n`,
@@ -223,6 +261,7 @@ function help(topic) {
     `  ${A}${ICON.arrow}${c.reset} scafkit react client-app --serverless --tw`,
   );
   console.log(`  ${A}${ICON.arrow}${c.reset} scafkit php auth-app`);
+  console.log(`  ${A}${ICON.arrow}${c.reset} scafkit laravel:build`);
   console.log(
     `  ${A}${ICON.arrow}${c.reset} scafkit make:controller Invoice approve reject`,
   );
@@ -230,7 +269,7 @@ function help(topic) {
     `  ${A}${ICON.arrow}${c.reset} scafkit make:route GET /invoices InvoiceController@index`,
   );
   console.log(
-    `\n  ${DIM}${c.italic}Tip: run ${c.reset}${A}help pern${c.reset}${DIM}${c.italic}, ${c.reset}${A}help react${c.reset}${DIM}${c.italic}, or ${c.reset}${A}help php${c.reset}${DIM}${c.italic} for focused guidance.${c.reset}\n`,
+    `\n  ${DIM}${c.italic}Tip: run ${c.reset}${A}help pern${c.reset}${DIM}${c.italic}, ${c.reset}${A}help react${c.reset}${DIM}${c.italic}, ${c.reset}${A}help php${c.reset}${DIM}${c.italic}, or ${c.reset}${A}help laravel${c.reset}${DIM}${c.italic} for focused guidance.${c.reset}\n`,
   );
 }
 

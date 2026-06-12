@@ -1,239 +1,257 @@
+![Scafkit CLI banner](assets/banner.png)
+
 # Scafkit CLI
 
-[![Socket Badge](https://badge.socket.dev/npm/package/scafkit-cli/1.0.8)](https://badge.socket.dev/npm/package/scafkit-cli/1.0.8)
+[![npm version](https://img.shields.io/npm/v/scafkit-cli.svg)](https://www.npmjs.com/package/scafkit-cli)
+[![Socket Badge](https://badge.socket.dev/npm/package/scafkit-cli/1.0.9)](https://badge.socket.dev/npm/package/scafkit-cli/1.0.9)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
 
-Scafkit is an interactive scaffolding CLI for creating PHP MVC, PERN, and React starter projects without rebuilding the same folder structure, scripts, and setup files by hand.
+Scafkit CLI is a practical project scaffolding and build helper for PHP MVC, PERN, React, and Laravel workflows. It helps you create starter projects, add PHP MVC files, run local projects, inspect tooling, and package Laravel apps for deployment.
 
-It is built for quick project starts: choose a template, pick TypeScript or JavaScript when needed, optionally include Tailwind or serverless functions, and let Scafkit generate the app with sensible defaults.
+## Links
 
-## Highlights
+- Repository: https://github.com/Railey-Sawada/scafkit-cli
+- Bugs: https://github.com/Railey-Sawada/scafkit-cli/issues
+- Homepage: https://github.com/Railey-Sawada/scafkit-cli#readme
+- npm: https://www.npmjs.com/package/scafkit-cli
 
-- Interactive shell and direct one-shot commands
-- PHP MVC authentication starter
-- PERN full-stack starter with React client and Express API
-- React starter with optional Tailwind CSS and Netlify Functions
-- TypeScript or JavaScript output for React and PERN
-- Optional dependency installation with `npm`, `pnpm`, `yarn`, or `bun`
-- `doctor`, `inspect`, `run`, `status`, `stop`, and `update` helper commands
-
-## Installation
+## Install
 
 ```bash
 npm install -g scafkit-cli
 ```
 
-Run the shell:
+Start the interactive shell:
 
 ```bash
 scafkit
 ```
 
-Print the installed version:
+Run a direct command:
 
 ```bash
-scafkit --version
+scafkit react dashboard --tw
 ```
 
-Check your local tooling:
+## What You Can Do
+
+| Need | Command |
+| --- | --- |
+| Create a React app | `scafkit react my-app` |
+| Create a PERN app | `scafkit pern inventory --sq-pg --tw` |
+| Create a PHP MVC auth starter | `scafkit php auth-app` |
+| Add a PHP MVC controller | `scafkit make:controller Invoice approve reject` |
+| Add a PHP MVC route | `scafkit make:route GET /invoices InvoiceController@index` |
+| Build a Laravel app for deployment | `scafkit laravel:build` |
+| Inspect the current project | `scafkit inspect` |
+| Check local tooling | `scafkit doctor` |
+| Start a local dev server | `scafkit run` |
+| Check for CLI updates | `scafkit update --check` |
+
+## Project Starters
+
+### React
 
 ```bash
-scafkit doctor
+scafkit react client-app
+scafkit react client-app --tw
+scafkit react client-app --js --no-install
+scafkit react client-app --serverless --tw --pm pnpm
 ```
 
-## Creating Projects
+Creates a Vite React project with a scalable `src` layout. TypeScript is the default, JavaScript is available with `--js`, and Tailwind or Netlify Functions can be added with flags.
 
-Use the short template command:
-
-```bash
-scafkit react my-app
-scafkit pern my-api
-scafkit php my-auth-app
-```
-
-Or use the explicit create form:
-
-```bash
-scafkit create react my-app
-scafkit create pern my-api
-scafkit create php my-auth-app
-```
-
-Scafkit asks before installing dependencies. To accept defaults and install without prompts:
-
-```bash
-scafkit react my-app --yes
-```
-
-To generate files only:
-
-```bash
-scafkit react my-app --no-install
-```
-
-To install with another package manager:
-
-```bash
-scafkit react my-app --pm pnpm
-scafkit pern my-api --pm yarn
-scafkit react my-app --pm bun
-```
-
-## Templates
-
-| Template | Command                   | Output                                                                                                            |
-| -------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| React    | `scafkit react my-app`    | React app with scalable`src` layout, Vite scripts, optional Tailwind, and optional Netlify Functions              |
-| PERN     | `scafkit pern my-api`     | React client plus Express server, PostgreSQL-ready defaults, optional Sequelize dialects, and copied server`.env` |
-| PHP MVC  | `scafkit php my-auth-app` | PHP MVC authentication starter with controllers, models, editable routes, sessions,`.env.example`, and SQL schema |
-
-## Flags
-
-Common project flags:
-
-| Flag            | Description                                             |
-| --------------- | ------------------------------------------------------- | ---- | ----- | ------------------------------------------------------ |
-| `--dir <path>`  | Create the project inside another directory             |
-| `--dry-run`     | Preview generated files without writing them            |
-| `--force`, `-f` | Overwrite existing generated files                      |
-| `--yes`, `-y`   | Use defaults and install dependencies without prompting |
-| `--no-install`  | Skip dependency installation                            |
-| `--pm <npm      | pnpm                                                    | yarn | bun>` | Choose the package manager for dependency installation |
-| `--help`, `-h`  | Show command help                                       |
-
-React flags:
-
-| Flag                   | Description                         |
-| ---------------------- | ----------------------------------- |
-| `--tw`, `--tailwind`   | Include Tailwind CSS                |
-| `--serverless`         | Include Netlify Functions endpoints |
-| `--ts`, `--typescript` | Generate TypeScript files           |
-| `--js`, `--javascript` | Generate JavaScript files           |
-
-PERN flags:
-
-| Flag                       | Description                              |
-| -------------------------- | ---------------------------------------- |
-| `--tw`, `--tailwind`       | Include Tailwind CSS in the React client |
-| `--ts`, `--typescript`     | Generate TypeScript files                |
-| `--js`, `--javascript`     | Generate JavaScript files                |
-| `--sq-pg`, `--sq-postgres` | Use Sequelize with PostgreSQL            |
-| `--sq-mysql`               | Use Sequelize with MySQL                 |
-| `--sq-sqlite`              | Use Sequelize with SQLite                |
-| `--sq-mariadb`             | Use Sequelize with MariaDB               |
-| `--sq-mssql`               | Use Sequelize with Microsoft SQL Server  |
-
-PHP flags and helpers:
-
-| Command or flag                                            | Description                                                     |
-| ---------------------------------------------------------- | --------------------------------------------------------------- |
-| `--tw`, `--tailwind`                                       | Include Tailwind CSS in the generated PHP layout                |
-| `--bs`, `--bootstrap`                                      | Include Bootstrap in the generated PHP layout                   |
-| `--dir <path>`                                             | Create the PHP starter inside another directory                 |
-| `--dry-run`                                                | Preview files without writing                                   |
-| `--force`, `-f`                                            | Overwrite existing generated files                              |
-| `scafkit make:controller Invoice`                          | Create`app/Controllers/InvoiceController.php`                   |
-| `scafkit make:controller Invoice approve reject`           | Create a controller with extra methods                          |
-| `scafkit make:route GET /invoices InvoiceController@index` | Append a route and scaffold missing controller/model/view files |
-
-## Commands
-
-| Command                  | Description                                                                    |
-| ------------------------ | ------------------------------------------------------------------------------ |
-| `scafkit`                | Open the interactive shell                                                     |
-| `scafkit help`           | Show command help                                                              |
-| `scafkit help react`     | Show focused React help                                                        |
-| `scafkit help pern`      | Show focused PERN help                                                         |
-| `scafkit help php`       | Show focused PHP help                                                          |
-| `scafkit list`           | List available templates                                                       |
-| `scafkit run`            | Start the detected React/Vite app                                              |
-| `scafkit run pern`       | Start PERN client and API servers                                              |
-| `scafkit run php`        | Start or link a PHP project                                                    |
-| `scafkit inspect`        | Detect the current project and list scripts/package manager                    |
-| `scafkit doctor`         | Check Scafkit, Node, npm, Git, PHP, Composer, and package-manager availability |
-| `scafkit update --check` | Check the latest npm version without installing                                |
-| `scafkit update`         | Check for an update and install after confirmation                             |
-| `scafkit status`         | Show managed dev-server status                                                 |
-| `scafkit stop all`       | Stop tracked dev servers                                                       |
-
-## Examples
-
-Create a React TypeScript app and choose whether to install dependencies:
-
-```bash
-scafkit react dashboard
-```
-
-Create a React app with Tailwind and install with pnpm:
-
-```bash
-scafkit react dashboard --tw --pm pnpm
-```
-
-Create a JavaScript React app without installing dependencies:
-
-```bash
-scafkit react client --js --no-install
-```
-
-Create a PERN app with Sequelize PostgreSQL and Tailwind:
+### PERN
 
 ```bash
 scafkit pern inventory --sq-pg --tw
+scafkit pern inventory --sq-mysql --js
+scafkit create pern inventory --sq-pg --dir ../projects --yes
 ```
 
-Create a PERN app in another directory and skip prompts:
+Creates a separated React client and Express API. Sequelize dialect flags are available for PostgreSQL, MySQL, SQLite, MariaDB, and Microsoft SQL Server.
+
+### PHP MVC
 
 ```bash
-scafkit create pern inventory --sq-mysql --dir ../projects --yes
-```
-
-Preview a PHP starter without writing files:
-
-```bash
-scafkit php auth-app --dry-run
-```
-
-Create a PHP starter with a CSS framework:
-
-```bash
+scafkit php auth-app
 scafkit php auth-app --tw
 scafkit php auth-app --bs
 ```
 
-Create a PHP controller:
+Creates a PHP MVC authentication starter with controllers, models, routes, sessions, `.env.example`, and SQL schema.
+
+## Laravel Build
+
+Run this from the root of an existing Laravel app:
+
+```bash
+scafkit laravel:build
+```
+
+Inside the interactive shell, use:
+
+```bash
+laravel:build
+```
+
+Scafkit checks that the current folder is a Laravel project, then quietly verifies Composer and Laravel before building.
+
+It runs the production build sequence:
+
+```bash
+composer install --no-dev --optimize-autoloader
+npm install
+npm run build
+
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+php artisan cache:clear
+
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan event:cache
+```
+
+It creates the deployment folder inside the current Laravel project root. The folder name comes from `APP_NAME` and uses a `-build` suffix, such as `e-docs-build` or `edocs-build`. If the target already exists, Scafkit picks the next available suffix such as `e-docs-build-1`.
+
+Generated layout:
+
+```text
+your-app-build/
+├─ .htaccess
+├─ your_database_name.sql
+├─ public/
+│  └─ index.php
+└─ laravel-app/
+   ├─ app/
+   ├─ bootstrap/
+   ├─ config/
+   ├─ database/
+   ├─ resources/
+   ├─ routes/
+   ├─ storage/
+   ├─ vendor/
+   └─ .env
+```
+
+The build excludes local development files such as `node_modules`, `tests`, public source maps, debug logs, package files, and Vite/Tailwind config files.
+
+For Laravel storage, Scafkit keeps the normal Laravel folder structure and `.gitignore` files. It only excludes these generated runtime files:
+
+```text
+storage/logs/laravel.log
+storage/framework/views/*.php
+```
+
+For Laravel bootstrap cache, Scafkit keeps `bootstrap/cache/.gitignore` and excludes generated PHP cache files:
+
+```text
+bootstrap/cache/*.php
+```
+
+Scafkit also updates `laravel-app/.env` for deployment defaults:
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your.domain.example
+DB_CONNECTION=mysql
+SESSION_DRIVER=database
+CACHE_STORE=database
+```
+
+Before exporting SQL, Scafkit checks Laravel migrations for the `cache`, `cache_locks`, and `sessions` tables. If the migrations are missing, it creates them with Artisan, runs `php artisan migrate --force`, and exports the current MySQL/MariaDB database with `mysqldump`. The SQL dump is stored in the build root beside `.htaccess`, and its filename is the exact `DB_DATABASE` value from `.env`.
+
+After upload, edit `laravel-app/.env` with the real production domain and database credentials.
+
+## Common Flags
+
+| Flag | Description |
+| --- | --- |
+| `--dir <path>` | Create a generated starter inside another directory |
+| `--dry-run` | Preview generated files without writing them |
+| `--force`, `-f` | Overwrite existing generated files |
+| `--yes`, `-y` | Use defaults and install dependencies without prompting |
+| `--no-install` | Skip dependency installation |
+| `--pm <npm\|pnpm\|yarn\|bun>` | Choose the package manager |
+| `--help`, `-h` | Show help |
+
+React flags:
+
+| Flag | Description |
+| --- | --- |
+| `--tw`, `--tailwind` | Include Tailwind CSS |
+| `--serverless` | Include Netlify Functions endpoints |
+| `--ts`, `--typescript` | Generate TypeScript files |
+| `--js`, `--javascript` | Generate JavaScript files |
+
+PERN flags:
+
+| Flag | Description |
+| --- | --- |
+| `--sq-pg`, `--sq-postgres` | Use Sequelize with PostgreSQL |
+| `--sq-mysql` | Use Sequelize with MySQL |
+| `--sq-sqlite` | Use Sequelize with SQLite |
+| `--sq-mariadb` | Use Sequelize with MariaDB |
+| `--sq-mssql` | Use Sequelize with Microsoft SQL Server |
+| `--tw`, `--tailwind` | Include Tailwind CSS in the React client |
+| `--ts`, `--typescript` | Generate TypeScript files |
+| `--js`, `--javascript` | Generate JavaScript files |
+
+## PHP MVC Helpers
+
+Create a controller:
 
 ```bash
 scafkit make:controller Invoice approve reject
 ```
 
-Create a PHP route:
+Create a route:
 
 ```bash
 scafkit make:route GET /invoices InvoiceController@index
 scafkit make:route POST /invoices InvoiceController@store
 ```
 
-`make:route` keeps existing files safe. It creates the controller, model, and page view only when they do not already exist. If the controller exists but the routed action is missing, Scafkit adds only that method and leaves the rest of the controller untouched.
+`make:route` creates missing controller, model, and page view files only when needed. If the controller exists but the action is missing, Scafkit adds only that method and leaves existing code untouched.
 
-Generated PHP page files are content-only. The shared head, header, toast, footer, and scripts are applied by `App\Core\View`, and AJAX-style requests skip that wrapper so partial responses stay clean. Route-created page names come from the route path, so `scafkit make:route /Hehe HeheController@ewan` creates `app/Views/Pages/Hehe.php`.
+## Utility Commands
+
+| Command | Description |
+| --- | --- |
+| `scafkit help` | Show command help |
+| `scafkit help react` | Show React help |
+| `scafkit help pern` | Show PERN help |
+| `scafkit help php` | Show PHP MVC help |
+| `scafkit help laravel` | Show Laravel builder help |
+| `scafkit list` | List starter templates |
+| `scafkit run` | Start the detected React/Vite app |
+| `scafkit run pern` | Start PERN client and API servers |
+| `scafkit run php` | Start or link a PHP project |
+| `scafkit inspect` | Detect the current project and list scripts/package manager |
+| `scafkit doctor` | Check Scafkit, Node, npm, Git, PHP, Composer, and package managers |
+| `scafkit status` | Show managed dev-server status |
+| `scafkit stop all` | Stop tracked dev servers |
+| `scafkit update` | Check npm for a newer CLI version and install after confirmation |
 
 ## Maintenance
 
-Release checks include Socket.dev through `npm run security:socket`, `npm run security:strict`, and the `prepublishOnly` gate.
-
-Inspect a generated project:
+Release checks:
 
 ```bash
-cd dashboard
-scafkit inspect
+npm run check
+npm run security:audit
+npm run security:prod
+npm run pack:dry-run
 ```
 
-Start local development:
+Strict release gate:
 
 ```bash
-scafkit run
-scafkit run pern
-scafkit run php
+npm run prepublishOnly
 ```
 
 ## License
