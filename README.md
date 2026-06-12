@@ -10,9 +10,9 @@ Scafkit CLI is a practical project scaffolding and build helper for PHP MVC, PER
 
 ## Links
 
-- Repository: https://github.com/Railey-Sawada/scafkit-cli
-- Bugs: https://github.com/Railey-Sawada/scafkit-cli/issues
-- Homepage: https://github.com/Railey-Sawada/scafkit-cli#readme
+- Repository: https://github.com/RaileySawada/scafkit-cli
+- Bugs: https://github.com/RaileySawada/scafkit-cli/issues
+- Homepage: https://github.com/RaileySawada/scafkit-cli#readme
 - npm: https://www.npmjs.com/package/scafkit-cli
 
 ## Install
@@ -35,18 +35,18 @@ scafkit react dashboard --tw
 
 ## What You Can Do
 
-| Need | Command |
-| --- | --- |
-| Create a React app | `scafkit react my-app` |
-| Create a PERN app | `scafkit pern inventory --sq-pg --tw` |
-| Create a PHP MVC auth starter | `scafkit php auth-app` |
-| Add a PHP MVC controller | `scafkit make:controller Invoice approve reject` |
-| Add a PHP MVC route | `scafkit make:route GET /invoices InvoiceController@index` |
-| Build a Laravel app for deployment | `scafkit laravel:build` |
-| Inspect the current project | `scafkit inspect` |
-| Check local tooling | `scafkit doctor` |
-| Start a local dev server | `scafkit run` |
-| Check for CLI updates | `scafkit update --check` |
+| Need                               | Command                                                    |
+| ---------------------------------- | ---------------------------------------------------------- |
+| Create a React app                 | `scafkit react my-app`                                     |
+| Create a PERN app                  | `scafkit pern inventory --sq-pg --tw`                      |
+| Create a PHP MVC auth starter      | `scafkit php auth-app`                                     |
+| Add a PHP MVC controller           | `scafkit make:controller Invoice approve reject`           |
+| Add a PHP MVC route                | `scafkit make:route GET /invoices InvoiceController@index` |
+| Build a Laravel app for deployment | `scafkit laravel:build`                                    |
+| Inspect the current project        | `scafkit inspect`                                          |
+| Check local tooling                | `scafkit doctor`                                           |
+| Start a local dev server           | `scafkit run`                                              |
+| Check for CLI updates              | `scafkit update --check`                                   |
 
 ## Project Starters
 
@@ -169,37 +169,37 @@ After upload, edit `laravel-app/.env` with the real production domain and databa
 
 ## Common Flags
 
-| Flag | Description |
-| --- | --- |
-| `--dir <path>` | Create a generated starter inside another directory |
-| `--dry-run` | Preview generated files without writing them |
-| `--force`, `-f` | Overwrite existing generated files |
-| `--yes`, `-y` | Use defaults and install dependencies without prompting |
-| `--no-install` | Skip dependency installation |
-| `--pm <npm\|pnpm\|yarn\|bun>` | Choose the package manager |
-| `--help`, `-h` | Show help |
+| Flag            | Description                                             |
+| --------------- | ------------------------------------------------------- | ---- | ----- | -------------------------- |
+| `--dir <path>`  | Create a generated starter inside another directory     |
+| `--dry-run`     | Preview generated files without writing them            |
+| `--force`, `-f` | Overwrite existing generated files                      |
+| `--yes`, `-y`   | Use defaults and install dependencies without prompting |
+| `--no-install`  | Skip dependency installation                            |
+| `--pm <npm/pnpm/yarn/bun>` | Choose the package manager |
+| `--help`, `-h`  | Show help                                               |
 
 React flags:
 
-| Flag | Description |
-| --- | --- |
-| `--tw`, `--tailwind` | Include Tailwind CSS |
-| `--serverless` | Include Netlify Functions endpoints |
-| `--ts`, `--typescript` | Generate TypeScript files |
-| `--js`, `--javascript` | Generate JavaScript files |
+| Flag                   | Description                         |
+| ---------------------- | ----------------------------------- |
+| `--tw`, `--tailwind`   | Include Tailwind CSS                |
+| `--serverless`         | Include Netlify Functions endpoints |
+| `--ts`, `--typescript` | Generate TypeScript files           |
+| `--js`, `--javascript` | Generate JavaScript files           |
 
 PERN flags:
 
-| Flag | Description |
-| --- | --- |
-| `--sq-pg`, `--sq-postgres` | Use Sequelize with PostgreSQL |
-| `--sq-mysql` | Use Sequelize with MySQL |
-| `--sq-sqlite` | Use Sequelize with SQLite |
-| `--sq-mariadb` | Use Sequelize with MariaDB |
-| `--sq-mssql` | Use Sequelize with Microsoft SQL Server |
-| `--tw`, `--tailwind` | Include Tailwind CSS in the React client |
-| `--ts`, `--typescript` | Generate TypeScript files |
-| `--js`, `--javascript` | Generate JavaScript files |
+| Flag                       | Description                              |
+| -------------------------- | ---------------------------------------- |
+| `--sq-pg`, `--sq-postgres` | Use Sequelize with PostgreSQL            |
+| `--sq-mysql`               | Use Sequelize with MySQL                 |
+| `--sq-sqlite`              | Use Sequelize with SQLite                |
+| `--sq-mariadb`             | Use Sequelize with MariaDB               |
+| `--sq-mssql`               | Use Sequelize with Microsoft SQL Server  |
+| `--tw`, `--tailwind`       | Include Tailwind CSS in the React client |
+| `--ts`, `--typescript`     | Generate TypeScript files                |
+| `--js`, `--javascript`     | Generate JavaScript files                |
 
 ## PHP MVC Helpers
 
@@ -220,22 +220,22 @@ scafkit make:route POST /invoices InvoiceController@store
 
 ## Utility Commands
 
-| Command | Description |
-| --- | --- |
-| `scafkit help` | Show command help |
-| `scafkit help react` | Show React help |
-| `scafkit help pern` | Show PERN help |
-| `scafkit help php` | Show PHP MVC help |
-| `scafkit help laravel` | Show Laravel builder help |
-| `scafkit list` | List starter templates |
-| `scafkit run` | Start the detected React/Vite app |
-| `scafkit run pern` | Start PERN client and API servers |
-| `scafkit run php` | Start or link a PHP project |
-| `scafkit inspect` | Detect the current project and list scripts/package manager |
-| `scafkit doctor` | Check Scafkit, Node, npm, Git, PHP, Composer, and package managers |
-| `scafkit status` | Show managed dev-server status |
-| `scafkit stop all` | Stop tracked dev servers |
-| `scafkit update` | Check npm for a newer CLI version and install after confirmation |
+| Command                | Description                                                        |
+| ---------------------- | ------------------------------------------------------------------ |
+| `scafkit help`         | Show command help                                                  |
+| `scafkit help react`   | Show React help                                                    |
+| `scafkit help pern`    | Show PERN help                                                     |
+| `scafkit help php`     | Show PHP MVC help                                                  |
+| `scafkit help laravel` | Show Laravel builder help                                          |
+| `scafkit list`         | List starter templates                                             |
+| `scafkit run`          | Start the detected React/Vite app                                  |
+| `scafkit run pern`     | Start PERN client and API servers                                  |
+| `scafkit run php`      | Start or link a PHP project                                        |
+| `scafkit inspect`      | Detect the current project and list scripts/package manager        |
+| `scafkit doctor`       | Check Scafkit, Node, npm, Git, PHP, Composer, and package managers |
+| `scafkit status`       | Show managed dev-server status                                     |
+| `scafkit stop all`     | Stop tracked dev servers                                           |
+| `scafkit update`       | Check npm for a newer CLI version and install after confirmation   |
 
 ## Maintenance
 

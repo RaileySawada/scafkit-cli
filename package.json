@@ -1,6 +1,6 @@
 {
   "name": "scafkit-cli",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Scaffold PHP, React, and PERN starters, then package Laravel apps for shared hosting.",
   "main": "src/index.js",
   "type": "commonjs",
@@ -62,11 +62,11 @@
   "author": "Railey-Sawada",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Railey-Sawada/scafkit-cli.git"
+    "url": "git+https://github.com/RaileySawada/scafkit-cli.git"
   },
   "bugs": {
-    "url": "https://github.com/Railey-Sawada/scafkit-cli/issues"
+    "url": "https://github.com/RaileySawada/scafkit-cli/issues"
   },
-  "homepage": "https://github.com/Railey-Sawada/scafkit-cli#readme",
+  "homepage": "https://github.com/RaileySawada/scafkit-cli#readme",
   "license": "MIT"
 }
